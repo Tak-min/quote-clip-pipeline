@@ -1,0 +1,14 @@
+{
+  "ja": {
+    "tiktok":    {"token_file": "secrets/tiktok_ja.json", "privacy_level": "PUBLIC_TO_EVERYONE"},
+    "instagram": {"ig_user_id": "1784xxxxxxxxxxxxx", "token_env": "META_TOKEN_JA"},
+    "facebook":  {"page_id": "1xxxxxxxxxxxxxx", "token_env": "FB_PAGE_TOKEN_JA"},
+    "threads":   {"user_id": "xxxxxxxxxxxxxxxx", "token_env": "THREADS_TOKEN_JA"}
+  },
+  "en": {
+    "tiktok":    {"token_file": "secrets/tiktok_en.json", "privacy_level": "PUBLIC_TO_EVERYONE"},
+    "instagram": {"ig_user_id": "1784xxxxxxxxxxxxx", "token_env": "META_TOKEN_EN"},
+    "facebook":  {"page_id": "1xxxxxxxxxxxxxx", "token_env": "FB_PAGE_TOKEN_EN"},
+    "threads":   {"user_id": "xxxxxxxxxxxxxxxx", "token_env": "THREADS_TOKEN_EN"}
+  }
+}

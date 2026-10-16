@@ -1,0 +1,11 @@
+work/
+output/
+.venv/
+.env
+secrets/
+accounts.json
+__pycache__/
+.pytest_cache/
+.DS_Store
+*.tmp
+*TEMP_MPY*

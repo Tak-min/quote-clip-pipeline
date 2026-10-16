@@ -1,0 +1,8 @@
+faster-whisper==1.2.1
+loguru==0.7.3
+numpy==2.5.4
+pillow==11.3.0
+python-dotenv==1.2.4
+requests==2.34.2
+yt-dlp==2026.8.19
+pytest==9.1.1
