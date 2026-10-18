@@ -205,6 +205,9 @@ def card_fields(row: Dict, app_quotes: Dict[str, Dict]) -> Dict[str, str]:
         "work_en": get("work_en") or q.get("work_en", ""),
         "cite_ja": get("cite") or q.get("source", ""),
         "cite_en": get("cite_en") or q.get("source_en", ""),
+        # The app's scene caption (when, where, to whom) opens the short the way it opens the quote in the app.
+        "scene_ja": q.get("scene_ja", ""),
+        "scene_en": q.get("scene_en", ""),
     }
 
 
@@ -242,7 +245,8 @@ def process_card(row: Dict, args: argparse.Namespace, app_quotes: Dict[str, Dict
             continue
         track = make_card_video(quote, speaker, f[f"work_{lang}"], f[f"cite_{lang}"], lang, str(final),
                                 seed=f"{key}:{lang}", app_name=args.app_name_en if lang == "en" else args.app_name,
-                                music_dir=args.music_dir, use_bgm=not args.no_bgm, tagline=args.app_tagline)
+                                music_dir=args.music_dir, use_bgm=not args.no_bgm, tagline=args.app_tagline,
+                                scene=f.get(f"scene_{lang}", ""))
         music_note = credits.get(Path(track).name, "") if track else ""
         names = {"speaker": speaker, "work": f[f"work_{lang}"]}
         cand = {f"quote_{lang}": quote, f"title_{lang}": quote.replace("\n", " ")[:40]}
@@ -354,7 +358,7 @@ def main() -> None:
     p.add_argument("--layout", default="fit", choices=["fit", "crop"])
     p.add_argument("--no-bgm", action="store_true")
     p.add_argument("--select-only", action="store_true", help="Stop after quote selection (no rendering)")
-    p.add_argument("--quotes-data", default=os.getenv("QUOTES_DATA", "~/meigen-app/data"),
+    p.add_argument("--quotes-data", default=os.getenv("QUOTES_DATA", "~/kotodama-codex/data"),
                    help="App quote data folder for card rows that use quote_id")
     args = p.parse_args()
     args.langs = [x.strip() for x in args.langs.split(",") if x.strip()]

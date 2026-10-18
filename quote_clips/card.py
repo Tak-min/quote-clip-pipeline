@@ -110,7 +110,7 @@ def _fit_lines(text: str, role: str, size: int, min_size: int, max_lines: int) -
 # ── Layout ───────────────────────────────────────────────────────────────
 
 
-def card_layout(quote: str, speaker: str, work: str, cite: str, lang: str, seed: str) -> Dict:
+def card_layout(quote: str, speaker: str, work: str, cite: str, lang: str, seed: str, scene: str = "") -> Dict:
     """Positions of every text line, decided once so the PNG layers line up."""
     rng = random.Random(seed)
     q_size = 84 if lang == "ja" else 76   # Carbon quotation02 scaled for 1080px video
@@ -128,6 +128,9 @@ def card_layout(quote: str, speaker: str, work: str, cite: str, lang: str, seed:
         return int((ascent + descent) * spacing)
 
     blocks = []  # (kind, lines, font, color, line_height, gap_after)
+    if scene:
+        sc_lines, sc_font = _fit_lines(scene, "quote", 50, 40, 3)
+        blocks.append(("scene", sc_lines, sc_font, TEXT_SECONDARY, line_h(sc_font, 1.35), 72))
     blocks.append(("quote", q_lines, q_font, TEXT_PRIMARY, line_h(q_font, 1.25), 96))
     blocks.append(("speaker", s_lines, s_font, TEXT_PRIMARY, line_h(s_font, 1.3), 12))
     if work:
@@ -156,6 +159,7 @@ def card_layout(quote: str, speaker: str, work: str, cite: str, lang: str, seed:
         "bg": BG,
         "reveal_by_line": rng.random() < 0.7,
         "quote_chars": len(quote.replace("\n", "")),
+        "has_scene": bool(scene),
     }
 
 
@@ -176,9 +180,13 @@ def _layer(path: Path, draw_fn) -> str:
 
 def card_timeline(layout: Dict, lang: str) -> tuple:
     """(layers, duration): each layer is (kind, rows-or-None, appear_at)."""
-    quote_rows = layout["blocks"][0]["rows"]
+    qi = 1 if layout.get("has_scene") else 0
+    quote_rows = layout["blocks"][qi]["rows"]
     t = 0.5
     appear = []
+    if qi:
+        appear.append(("scene", None, 0.3))
+        t = 1.6  # let the scene land before the words
     if layout["reveal_by_line"]:
         for i in range(len(quote_rows)):
             appear.append(("quote_row", i, t))
@@ -199,7 +207,8 @@ def render_card_base(layout: Dict, lang: str, out_path: str) -> float:
     parts.mkdir(parents=True, exist_ok=True)
     appear, duration = card_timeline(layout, lang)
     blocks = layout["blocks"]
-    quote = blocks[0]
+    qi = 1 if layout.get("has_scene") else 0
+    quote = blocks[qi]
 
     bg = Image.new("RGBA", (W, H), (*layout["bg"], 255))
     bg_path = str(parts / "bg.png")
@@ -212,7 +221,7 @@ def render_card_base(layout: Dict, lang: str, out_path: str) -> float:
         return fn
 
     def draw_rest(draw: ImageDraw.ImageDraw) -> None:
-        for b in blocks[1:]:
+        for b in blocks[qi + 1:]:
             for r in b["rows"]:
                 draw.text((MARGIN_X, r["y"]), r["text"], font=b["font"], fill=b["color"])
 
@@ -221,6 +230,8 @@ def render_card_base(layout: Dict, lang: str, out_path: str) -> float:
         path = parts / f"layer_{k:02d}.png"
         if kind == "quote_row":
             layers.append((_layer(path, draw_rows(quote, [quote["rows"][idx]])), at))
+        elif kind == "scene":
+            layers.append((_layer(path, draw_rows(blocks[0], blocks[0]["rows"])), at))
         elif kind == "quote_all":
             layers.append((_layer(path, draw_rows(quote, quote["rows"])), at))
         else:
@@ -254,10 +265,10 @@ def render_card_base(layout: Dict, lang: str, out_path: str) -> float:
 
 def make_card_video(quote: str, speaker: str, work: str, cite: str, lang: str, out_path: str, seed: str,
                     app_name: str, music_dir: str, use_bgm: bool, tagline: str = "",
-                    line_break: bool = True) -> Optional[str]:
+                    line_break: bool = True, scene: str = "") -> Optional[str]:
     """Full card short (card → end card, BGM, loudnorm). Returns the BGM file used."""
     text = break_lines(quote, lang) if line_break else quote
-    layout = card_layout(text, speaker, work, cite, lang, seed)
+    layout = card_layout(text, speaker, work, cite, lang, seed, scene=scene)
     base = out_path + ".base.mp4"
     try:
         render_card_base(layout, lang, base)
@@ -290,4 +301,9 @@ def load_app_quotes(data_dir: str) -> Dict[str, Dict]:
             q["work_ja"] = work.get("ja", "")
             q["work_en"] = work.get("en", "")
             quotes[q["id"]] = q
+    scenes_file = root / "scenes.json"
+    if scenes_file.exists():
+        for qid, sc in json.loads(scenes_file.read_text(encoding="utf-8")).items():
+            if qid in quotes:
+                quotes[qid]["scene_ja"], quotes[qid]["scene_en"] = sc.get("ja", ""), sc.get("en", "")
     return quotes
