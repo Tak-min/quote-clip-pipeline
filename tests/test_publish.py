@@ -12,7 +12,7 @@ from quote_clips.publish.captions import build_captions
 from quote_clips.publish.http import PublishError
 
 META = {"lang": "ja", "title": "題名", "description": "「信じろ」\n— ジョブズ\n出典: u\n#名言 #モチベーション",
-        "hashtags": ["#名言", "#モチベーション", "#ジョブズ"], "quote": "信じろ"}
+        "hashtags": ["#名言", "#モチベーション", "#ジョブズ"], "quote": "信じろ", "mode": "card"}
 
 
 def test_chunk_plan_small_file_single_chunk():
@@ -116,3 +116,26 @@ def test_missing_token_env_is_a_clear_error(monkeypatch):
     monkeypatch.delenv("NOPE", raising=False)
     with pytest.raises(PublishError, match="NOPE"):
         meta_api.post_facebook("x.mp4", build_captions(META), {"page_id": "P", "token_env": "NOPE"})
+
+
+def test_delete_removes_meta_posts_once(monkeypatch):
+    ledger = {"output/ja/cards/ani-004_x.mp4": {
+        "instagram": {"id": "i1"}, "facebook": {"id": "f1"}, "threads": {"id": "t1"}, "tiktok": {"id": "manual"}}}
+    deleted = []
+    monkeypatch.setattr(cli.meta_api, "delete_post", lambda p, pid, cfg: deleted.append((p, pid)))
+    cfg = {"instagram": {}, "facebook": {}, "threads": {}}
+    assert cli.delete_video("ani-004_x", cfg, ledger, dry_run=False) == ["instagram", "facebook", "threads"]
+    assert cli.delete_video("ani-004_x", cfg, ledger, dry_run=False) == []   # already deleted
+    assert deleted == [("instagram", "i1"), ("facebook", "f1"), ("threads", "t1")]
+
+
+def test_default_platforms_are_meta_only():
+    assert cli.DEFAULT_PLATFORMS == ["instagram", "facebook", "threads"]
+
+
+def test_unlicensed_old_clips_are_never_pending(tmp_path):
+    card_clip = _make_clip(tmp_path, name="01_card")
+    old = tmp_path / "output" / "ja" / "vid" / "02_old.json"
+    old.write_text(json.dumps({k: v for k, v in META.items() if k != "mode"}), encoding="utf-8")
+    old.with_suffix(".mp4").write_bytes(b"x")
+    assert cli.pending_videos(tmp_path / "output", "ja", {}, ["instagram"]) == [card_clip]

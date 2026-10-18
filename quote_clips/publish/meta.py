@@ -88,3 +88,12 @@ def post_threads(video_path: str, caption: Dict, cfg: Dict, video_url: Optional[
                               data={"creation_id": cid, "access_token": token}), "Threads publish")["id"]
     logger.info(f"Threads: post id={tid}")
     return {"id": tid}
+
+
+def delete_post(platform: str, post_id: str, cfg: Dict) -> None:
+    """Remove a published post (used when a takedown notice arrives: research/copyright/DECISION.md ③)."""
+    token = _env(cfg, "token_env")
+    base = THREADS if platform == "threads" else GRAPH
+    check(requests.delete(f"{base}/{post_id}", timeout=TIMEOUT, params={"access_token": token}),
+          f"{platform} delete")
+    logger.info(f"{platform}: deleted {post_id}")

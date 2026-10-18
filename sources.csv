@@ -1,4 +1,5 @@
-url,speaker,category,work
-https://www.youtube.com/watch?v=UF8uR6Z6KLc,スティーブ・ジョブズ,偉人,
-https://www.youtube.com/watch?v=zhwLxNjK97A,松岡修造,偉人,
-https://www.youtube.com/watch?v=KaL4ukHZmlE,,アニメ,ハイキュー!!
+mode,quote_id,quote,quote_en,speaker,speaker_en,category,work,work_en,cite,cite_en,url,license,author
+card,fig-034,,,,,,,,,,,,
+card,fig-035,,,,,,,,,,,,
+card,ani-004,,,,,,,,,,,,
+card,ani-002,,,,,,,,,,,,

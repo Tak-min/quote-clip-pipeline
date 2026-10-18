@@ -22,17 +22,28 @@ ffmpeg が必要（`brew install ffmpeg`）。日本語フォントは macOS の
 
 ## 使い方
 
-`sources.csv`（1行 = 1本の元動画）:
+**基本は名言テキストカード動画**（他人の映像・音声を使わない）。切り抜きは、権利者が再利用を明示的に許可した素材だけ。
+運用ルールの根拠は [`research/copyright/DECISION.md`](research/copyright/DECISION.md)。
+
+`sources.csv`（1行 = 1本）:
 
 ```csv
-url,speaker,category,work
-https://www.youtube.com/watch?v=UF8uR6Z6KLc,スティーブ・ジョブズ,偉人,
-https://www.youtube.com/watch?v=XXXX,炭治郎,アニメ,鬼滅の刃
+mode,quote_id,quote,quote_en,speaker,speaker_en,category,work,work_en,cite,cite_en,url,license,author
+card,fig-034,,,,,,,,,,,,
+card,,負けは弱さの証明ではない,,武田一鉄,,アニメ,ハイキュー!!,,42巻 第369話,,,,
+clip,,,,演説者名,,偉人,,,,,https://...,CC BY 4.0,権利者名
 ```
 
+- `mode` が空なら `card` として扱う（列の書き忘れで他人の映像が出る事故を防ぐ）。
+- `card` 行: `quote_id` を書くとアプリのデータ（`--quotes-data`、既定 `~/meigen-app/data`）から日英の本文・発言者・作品名・出典を読む。直接 `quote` / `speaker` / `cite` を書いてもよい。足りない言語はLLMで翻訳。出典は**文字だけ**（URLは入れない）。
+- `clip` 行: `license` が空の行は作らない。投稿文には元動画URL・作者・ライセンスが入る。
+- 存命の人物は使わない（本人がアプリを推薦しているように見えるため）。
+
 ```bash
-.venv/bin/python -m quote_clips.run --sources sources.csv --app-name "アプリ名"
+.venv/bin/python -m quote_clips.run --sources sources.csv --app-name "言霊" --app-name-en "KOTODAMA"
 ```
+
+カードの見た目はアプリのシェア画像に合わせている（黒地・Emberの斜線・発言者名が主役）。地の色・斜線の位置・表示位置・出し方は1本ごとに少し変わる。
 
 | オプション | 既定 | 説明 |
 |---|---|---|
@@ -48,7 +59,8 @@ https://www.youtube.com/watch?v=XXXX,炭治郎,アニメ,鬼滅の刃
 
 出力（アカウントごとに言語別フォルダ）:
 
-- `output/ja/<video_id>/NN_<タイトル>.mp4` … 日本語字幕版（日本語アカウント用）
+- `output/ja/cards/<quote_id>_<発言者>.mp4` … カード（日本語アカウント用）。英語は `output/en/cards/`
+- `output/ja/<video_id>/NN_<タイトル>.mp4` … 許可素材の切り抜き（日本語字幕版）
 - `output/en/<video_id>/NN_<title>.mp4` … 英語字幕版（英語アカウント用）
 - 各 `.json` に投稿用タイトル・説明文・ハッシュタグ・出典URL・BGMクレジット・表示した字幕
 - `output/_candidates/<video_id>.json` … 選ばれた名言区間
@@ -73,19 +85,22 @@ https://www.youtube.com/watch?v=XXXX,炭治郎,アニメ,鬼滅の刃
 - 文字起こしは `work/` にキャッシュされる（同じURL・同じモデルは再実行しない）。
 - 同梱BGM（Kevin MacLeod, CC BY 4.0）はクレジット表記が必要。`.json` の説明文に自動で入る。
 
-## 投稿（TikTok / Instagram / Facebookリール / Threads）
+## 投稿（Instagram / Facebookリール / Threads は自動、TikTok は手動）
 
 ```bash
-cp accounts.example.json accounts.json   # 言語ごとに各SNSのアカウントを書く
+cp accounts.example.json accounts.json   # 言語ごとにMeta系のアカウントを書く
 .venv/bin/python -m quote_clips.publish --lang ja --limit 1 --dry-run   # 何が投稿されるか確認（APIは呼ばない）
-.venv/bin/python -m quote_clips.publish --lang ja --limit 1             # 未投稿の古い順に1本、全SNSへ
-.venv/bin/python -m quote_clips.publish --lang en --limit 1
+.venv/bin/python -m quote_clips.publish --lang ja --limit 1             # 未投稿の古い順に1本、Meta系へ
+.venv/bin/python -m quote_clips.publish --lang ja --platforms tiktok --limit 3 --dry-run   # TikTok用の説明文を表示
+.venv/bin/python -m quote_clips.publish delete --lang ja --video ani-004_武田一鉄           # 削除申し立て時: Meta系から消す
 ```
 
 - `output/posted.json` に投稿結果を記録。再実行しても二重投稿しない。1つのSNSが失敗しても他は続行し、次回そのSNSだけ再挑戦。
-- 既定の投稿先は TikTok と Meta系（Instagram / Facebook / Threads）。`accounts.json` に書いていないSNSはスキップ。`--platforms tiktok,instagram` で絞れる。
-- YouTubeは既定から外している。使うときは `accounts.json` に `youtube` を足し、`--platforms youtube` を付ける。
+- **投稿されるのはカード動画と許可素材の切り抜きだけ**。それ以前に作った切り抜き（記録に `mode` が無いもの）は投稿対象から外れる。
+- **TikTok はアプリから手動で投稿**する（Content Posting API の監査は自社アカウント向けの投稿ツールを通さないため）。説明文は上の `--dry-run` で出す。
+- 削除申し立てが来たら当日中に `delete` で Meta系から消し、TikTok はアプリで消す。手順は DECISION.md ③。
 - 認証情報は `secrets/`（トークンファイル）と環境変数（`.env`）に置く。どちらもgit管理外。
+- Meta の開発者アプリ・ビジネスは、アプリ本体の広告・ログインに使うものとは別に作る（DECISION.md ③）。
 
 | SNS | 方式 | 準備 |
 |---|---|---|

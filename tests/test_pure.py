@@ -94,8 +94,8 @@ def test_split_cards_keeps_two_lines_and_shares_time():
 
 def test_build_meta_per_language():
     cand = {"start": 1.0, "end": 20.0, "quote_ja": "信じろ", "quote_en": "Trust", "title_ja": "題", "title_en": "Title"}
-    ja = build_meta("ja", {"speaker": "ジョブズ", "work": ""}, "偉人", cand, "u", "")
-    en = build_meta("en", {"speaker": "Steve Jobs", "work": ""}, "偉人", cand, "u", "")
+    ja = build_meta("ja", {"speaker": "ジョブズ", "work": ""}, "偉人", cand, "出典: u", "")
+    en = build_meta("en", {"speaker": "Steve Jobs", "work": ""}, "偉人", cand, "Source: u", "")
     assert ja["title"] == "題" and "#名言" in ja["hashtags"] and "「信じろ」" in ja["description"]
     assert en["title"] == "Title" and "#SteveJobs" in en["hashtags"] and "Source: u" in en["description"]
 
