@@ -196,6 +196,20 @@ def text_positions(picture: tuple) -> Dict[str, int]:
     return {"hook_center": int(top * 0.38), "telop_top": top - 130, "sub_top": bottom + SUB_GAP}
 
 
+_ASSET_FONTS = Path(__file__).resolve().parent.parent / "assets" / "fonts"
+
+
+def _plain_text(text: str, font_file: str, size: int, color: tuple) -> Image.Image:
+    """Single-line text image in a bundled font (falls back to the CJK system font)."""
+    path = _ASSET_FONTS / font_file
+    font = ImageFont.truetype(str(path), size) if path.exists() else _font(size)
+    measure = ImageDraw.Draw(Image.new("RGBA", (4, 4)))
+    left, top, right, bottom = measure.textbbox((0, 0), text, font=font)
+    img = Image.new("RGBA", (right - left + 8, bottom - top + 8), (0, 0, 0, 0))
+    ImageDraw.Draw(img).text((4 - left, 4 - top), text, font=font, fill=color)
+    return img
+
+
 def _pick_bgm(music_dir: str, seed: str) -> Optional[str]:
     tracks = sorted(p for p in Path(music_dir).glob("*.mp3"))
     return str(random.Random(seed).choice(tracks)) if tracks else None
@@ -269,10 +283,10 @@ def compose(
 
     if app_name:
         card = str(tmp_dir / "endcard.png")
-        layers = [(text_image(app_name, 120, plate=None, stroke=0), H // 2 - 40, True)]
+        layers = [(_plain_text(app_name, "IBMPlexSansJP-Light.ttf", 120, (244, 244, 244, 255)), H // 2 - 40, True)]
         if tagline:
-            layers.append((text_image(tagline, 52, plate=None, stroke=0, color=(200, 200, 210, 255)), H // 2 + 110, True))
-        _frame_png(card, layers, bg=(10, 10, 14, 255))
+            layers.append((_plain_text(tagline, "IBMPlexSansJP-Regular.ttf", 48, (198, 198, 198, 255)), H // 2 + 110, True))
+        _frame_png(card, layers, bg=(22, 22, 22, 255))  # Carbon g100, matches the app (meigen-app docs/design-system.md)
         inputs += ["-loop", "1", "-framerate", str(FPS), "-t", f"{END_CARD_SEC}", "-i", card]
         k = n + 1
         filters.append(f"[{k}:v]format=yuv420p,setsar=1[vcard]")

@@ -4,11 +4,10 @@ A card video shows one quote, who said it and a text citation on the app's own
 background (same look as the KOTODAMA share image), then reuses render.compose
 for the app-name end card, CC BY BGM and loudness normalization.
 
-Layout follows the app's share image (meigen-app docs/design.md §9.1):
-near-black ground, one short Ember slash, left-aligned quote, speaker name as
-the largest text with a short Ember rule under it, work title and a small
-monospace citation. The look varies a little per video (ground tone, slash
-corner, vertical position, reveal) so cards are not machine-identical.
+Layout follows the app's design system (meigen-app docs/design-system.md §6/§8,
+IBM Carbon g100): #161616 ground, IBM Plex Sans JP Light quote, SemiBold speaker,
+Regular work/citation, no accent marks. The vertical position and reveal vary a
+little per video so cards are not machine-identical.
 """
 
 import json
@@ -23,23 +22,22 @@ from PIL import Image, ImageDraw, ImageFont
 from quote_clips.llm import call_llm, parse_json
 from quote_clips.render import FPS, H, W, compose, wrap_text
 
-BG_TONES = [(11, 11, 12), (14, 13, 12), (12, 12, 15)]
-TEXT_PRIMARY = (242, 240, 235, 255)
-TEXT_SECONDARY = (166, 163, 156, 255)
-TEXT_TERTIARY = (119, 116, 110, 255)
-EMBER = (255, 90, 31, 255)
+BG = (22, 22, 22)                       # Carbon g100 background
+TEXT_PRIMARY = (244, 244, 244, 255)     # textPrimary
+TEXT_SECONDARY = (198, 198, 198, 255)   # textSecondary
+TEXT_TERTIARY = (168, 168, 168, 255)    # textHelper
 
-MARGIN_X = 80
+MARGIN_X = 96
 SAFE_TOP, SAFE_BOTTOM = 250, H - 250   # Stories / Reels UI bands stay empty
 MAX_W = W - MARGIN_X * 2
 
-_FONT_DIR = Path("/System/Library/Fonts")
+_FONT_DIR = Path(__file__).resolve().parent.parent / "assets" / "fonts"   # IBM Plex Sans JP (OFL 1.1)
 _FONTS = {
-    "quote": ["ヒラギノ角ゴシック W6.ttc", "ヒラギノ角ゴシック W7.ttc"],
-    "speaker": ["ヒラギノ角ゴシック W8.ttc", "ヒラギノ角ゴシック W7.ttc"],
-    "work": ["ヒラギノ角ゴシック W5.ttc", "ヒラギノ角ゴシック W6.ttc"],
-    "meta": ["Menlo.ttc"],
-    "meta_cjk": ["ヒラギノ角ゴシック W4.ttc", "ヒラギノ角ゴシック W5.ttc"],
+    "quote": ["IBMPlexSansJP-Light.ttf"],
+    "speaker": ["IBMPlexSansJP-SemiBold.ttf"],
+    "work": ["IBMPlexSansJP-Regular.ttf"],
+    "meta": ["IBMPlexSansJP-Regular.ttf"],
+    "meta_cjk": ["IBMPlexSansJP-Regular.ttf"],
 }
 # Reading speed (characters per second) used to size the hold time.
 _READ_RATE = {"ja": 7.0, "en": 16.0}
@@ -115,24 +113,23 @@ def _fit_lines(text: str, role: str, size: int, min_size: int, max_lines: int) -
 def card_layout(quote: str, speaker: str, work: str, cite: str, lang: str, seed: str) -> Dict:
     """Positions of every text line, decided once so the PNG layers line up."""
     rng = random.Random(seed)
-    q_size = 72 if lang == "ja" else 66
+    q_size = 84 if lang == "ja" else 76   # Carbon quotation02 scaled for 1080px video
     if len(quote.replace("\n", "")) > (60 if lang == "ja" else 140):
-        q_size -= 10
+        q_size -= 16
     q_lines, q_font = _fit_lines(quote, "quote", q_size, 40, 8)
-    s_lines, s_font = _fit_lines(speaker.upper() if lang == "en" else speaker, "speaker", 96, 60, 2)
-    w_font = _font("work", 38)
+    s_lines, s_font = _fit_lines(speaker, "speaker", 48, 36, 2)
+    w_font = _font("work", 40)
     cite = _strip_work(cite, work)
     meta_role = "meta" if cite.isascii() else "meta_cjk"  # Menlo has no Japanese glyphs
-    m_lines, m_font = _fit_lines(cite, meta_role, 28, 22, 2) if cite else ([], _font("meta", 28))
+    m_lines, m_font = _fit_lines(cite, meta_role, 34, 26, 2) if cite else ([], _font("meta", 34))
 
     def line_h(font: ImageFont.FreeTypeFont, spacing: float) -> int:
         ascent, descent = font.getmetrics()
         return int((ascent + descent) * spacing)
 
     blocks = []  # (kind, lines, font, color, line_height, gap_after)
-    blocks.append(("quote", q_lines, q_font, TEXT_PRIMARY, line_h(q_font, 1.32), 72))
-    blocks.append(("speaker", s_lines, s_font, TEXT_PRIMARY, line_h(s_font, 1.05), 20))
-    blocks.append(("rule", [], None, EMBER, 6, 28))
+    blocks.append(("quote", q_lines, q_font, TEXT_PRIMARY, line_h(q_font, 1.25), 96))
+    blocks.append(("speaker", s_lines, s_font, TEXT_PRIMARY, line_h(s_font, 1.3), 12))
     if work:
         blocks.append(("work", [work], w_font, TEXT_SECONDARY, line_h(w_font, 1.2), 14))
     if m_lines:
@@ -156,8 +153,7 @@ def card_layout(quote: str, speaker: str, work: str, cite: str, lang: str, seed:
         y += gap
     return {
         "blocks": placed,
-        "bg": rng.choice(BG_TONES),
-        "slash_right": rng.random() < 0.5,
+        "bg": BG,
         "reveal_by_line": rng.random() < 0.7,
         "quote_chars": len(quote.replace("\n", "")),
     }
@@ -169,14 +165,6 @@ def _strip_work(cite: str, work: str) -> str:
     if work and cite.startswith(work):
         cite = cite[len(work):].lstrip(" ,、·:：")
     return cite
-
-
-def _draw_slash(draw: ImageDraw.ImageDraw, right: bool) -> None:
-    """One short Ember slash (−12°, 120px, 6px) in a top corner — the brand mark."""
-    x0 = W - 170 if right else 110
-    y0 = 300
-    dx = int(120 * 0.2079)  # sin(12°)
-    draw.line([(x0 + dx, y0), (x0, y0 + 120)], fill=EMBER, width=6)
 
 
 def _layer(path: Path, draw_fn) -> str:
@@ -214,7 +202,6 @@ def render_card_base(layout: Dict, lang: str, out_path: str) -> float:
     quote = blocks[0]
 
     bg = Image.new("RGBA", (W, H), (*layout["bg"], 255))
-    _draw_slash(ImageDraw.Draw(bg), layout["slash_right"])
     bg_path = str(parts / "bg.png")
     bg.save(bg_path)
 
@@ -226,11 +213,8 @@ def render_card_base(layout: Dict, lang: str, out_path: str) -> float:
 
     def draw_rest(draw: ImageDraw.ImageDraw) -> None:
         for b in blocks[1:]:
-            if b["kind"] == "rule":
-                draw.rectangle([MARGIN_X, b["y"], MARGIN_X + 96, b["y"] + b["h"] - 1], fill=EMBER)
-            else:
-                for r in b["rows"]:
-                    draw.text((MARGIN_X, r["y"]), r["text"], font=b["font"], fill=b["color"])
+            for r in b["rows"]:
+                draw.text((MARGIN_X, r["y"]), r["text"], font=b["font"], fill=b["color"])
 
     layers = []  # (png, appear_at)
     for k, (kind, idx, at) in enumerate(appear):
