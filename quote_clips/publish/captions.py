@@ -16,7 +16,7 @@ def build_captions(meta: Dict) -> Dict:
         "title": _fit(title, 100 - len(" #Shorts")) + " #Shorts",
         "description": desc,
         # TikTok / Instagram / Facebook show one caption block.
-        "tiktok": _fit(f"{title}\n{short_tags}", 2200),
+        "tiktok": _fit(desc, 2200),
         "instagram": _fit(desc, 2200),
         "facebook": desc,
         # Threads: 500 chars, keep it to the quote + a few tags.

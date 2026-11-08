@@ -26,9 +26,7 @@ from quote_clips.publish.captions import build_captions
 
 # Instagram runs before Threads so Threads can reuse the Reel's public CDN URL.
 PLATFORMS = ["youtube", "tiktok", "instagram", "facebook", "threads"]
-# Automatic targets: Meta. TikTok is posted by hand in the app (its Content Posting API audit
-# rejects own-account upload tools; research/copyright/DECISION.md ④): use
-# `--platforms tiktok --dry-run` to print the caption. YouTube stays available via --platforms.
+# TikTok stays explicit until its API audit is approved.
 DEFAULT_PLATFORMS = ["instagram", "facebook", "threads"]
 DELETABLE = ["instagram", "facebook", "threads"]
 
@@ -44,10 +42,7 @@ def save_ledger(path: Path, ledger: Dict) -> None:
 
 
 def publishable(video: Path) -> bool:
-    """Only text cards and licensed clips may be posted (research/copyright/DECISION.md ①②).
-
-    Older renders without a mode (unlicensed clips from before the decision) are never posted.
-    """
+    """Only cards or explicitly licensed clips may be published."""
     meta_path = video.with_suffix(".json")
     if not meta_path.exists():
         return False

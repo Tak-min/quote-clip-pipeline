@@ -113,3 +113,18 @@ cp accounts.example.json accounts.json   # 言語ごとにMeta系のアカウン
 **Metaの自動シェアについて**: アカウントセンターの「プロフィール間のシェア」でInstagramリールをFacebookへ自動シェアできるが、
 API投稿にも適用されるか・Facebookで「リール」扱いになるかは公式に保証されていない。最初の1本で確認し、自動で出るなら
 `accounts.json` から `facebook` / `threads` を消せばその分は投稿しない。
+
+## Raspberry Pi で KOTONEX 英語ショートを毎日自動投稿（2026-11-08〜）
+
+Pi（`taku8@100.102.144.116`、Debian 12 arm64）で **カード動画（英語）だけ** を作り、投稿は `~/sns-poster` に一本化している。
+このリポジトリ自身の投稿機能（`quote_clips.publish`）は Pi では使わない（二重投稿防止。`accounts.json` も置いていない）。
+
+- 配置: `~/quote-clip-pipeline`。Mac から `./deploy_to_pi.sh` で更新する。**コミット済みの HEAD**（カード専用の安全策が入った版）＋ `EXTRA` に書いたファイルだけを送り、アプリの名言データ（`~/kotodama-codex/data` の quotes_*.json / works.json / scenes.json）を `data/app/` へコピーし、Pi でテストを実行する。`.env`・`secrets/`・`output/`・`work/` は送らない
+- venv: Python 3.11。カード動画に要るもの（numpy<2.4・loguru・pillow・python-dotenv・requests・pytest）だけ入れた。faster-whisper / yt-dlp は切り抜き用なので入れていない
+- フォント: `assets/fonts` の IBM Plex Sans JP（`QUOTE_FONT` もこれ）。予備として apt の fonts-noto-cjk
+- `.env`（600）: Groq/Gemini のキー（Mac の共有LLM設定から必要な分だけコピー）、`LLM_ENV_FILE`、`QUOTES_DATA=data/app`、`APP_NAME=KOTONEX`、`APP_TAGLINE=Now on the App Store`
+- 毎日の流れ: `quote_clips/kotonex_daily.py` が JST 07:30 / 12:00 / 17:30 / 20:00 / 22:00 の枠ごとに、使っていない名言を1つ選ぶ（偉人4本＋アニメ1本〔20:00〕。存命の人物は除外、英語の本文・出典がデータにあるものだけ、アニメは短い引用だけ）→ `quote_clips.run --langs en` でカード動画を作る → 英語の投稿文（YouTube タイトル90字以内＋#Shorts、説明文にアプリのリンク、TikTok は「link in bio」、BGM のクレジット、ハッシュタグ5個）を作る → `sns-poster enqueue --at <時刻> --options-json` で YouTube・TikTok・Instagram に予約する
+- cron（Pi の taku8）: `10 5-21 * * *` に毎時実行。まだ予約していない未来の枠だけを埋めるので、Pi が止まっていても次の回で追いつく。ログは `logs/kotonex-daily.log`
+- 状態: `state/used.json`（使った名言。全部使い切ったら一巡し直す）、`state/schedule-YYYY-MM-DD.json`（枠ごとの名言・ジョブID）
+- 手動: `.venv/bin/python -m quote_clips.kotonex_daily --dry-run`（選ぶだけ）/ `--now`（1本作って今すぐ投稿キューへ）
+- 投稿状況: `~/sns-poster/bin/sns-poster status`

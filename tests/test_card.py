@@ -19,6 +19,15 @@ def test_clip_without_license_is_refused():
         run.process_row({"mode": "clip", "url": "https://example.com/v"}, argparse.Namespace())
 
 
+def test_clip_caption_follows_shift_order_without_link():
+    copy = {"caption": "紹介\n\n教訓", "cite": "チェルシー監督就任会見（2004）"}
+    text = run.clip_caption("ja", "私は特別だ", copy, "言霊", ["#名言"], "Music: x")
+    parts = text.split("\n\n")
+    assert parts[0] == "「私は特別だ」" and parts[1] == "紹介"
+    assert text.index("名言アプリ「言霊」") < text.index("#名言") < text.index("【出典】チェルシー監督就任会見（2004）")
+    assert text.endswith("Music: x") and "http" not in text
+
+
 def test_card_citation_is_text_never_url():
     line = run.source_line("ja", cite="スタンフォード大学卒業式スピーチ、2005年")
     assert line == "出典: スタンフォード大学卒業式スピーチ、2005年" and "http" not in line

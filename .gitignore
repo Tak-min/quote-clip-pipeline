@@ -9,3 +9,6 @@ __pycache__/
 .DS_Store
 *.tmp
 *TEMP_MPY*
+state/
+data/app/
+logs/

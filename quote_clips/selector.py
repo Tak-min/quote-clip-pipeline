@@ -11,7 +11,7 @@ from loguru import logger
 from quote_clips.llm import call_llm, parse_json
 
 MIN_CLIP_SEC = 10.0
-MAX_CLIP_SEC = 60.0
+MAX_CLIP_SEC = 40.0   # Shift-style shorts run ~20s
 CHUNK_SEGMENTS = 150
 CHUNK_OVERLAP = 15
 
@@ -20,7 +20,7 @@ PROMPT = """あなたはモチベーション系ショート動画の編集者�
 視聴者のやる気を上げる「名言・決め台詞」が含まれる区間を最大{max_quotes}件選べ。
 
 条件:
-- 区間は{min_sec:.0f}〜{max_sec:.0f}秒。名言の前に必要な最小限の文脈だけ含める。
+- 区間は{min_sec:.0f}〜{max_sec:.0f}秒（理想は15〜25秒）。名言の前に必要な最小限の文脈だけ含める。
 - 開始と終了は必ず文字起こしの区切り（番号）に合わせ、文の途中で切らない。
 - 単体で意味が通り、心に刺さるものだけ。雑談・内輪ネタ・宣伝は除外。
 - 該当がなければ [] だけを返す。

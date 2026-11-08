@@ -133,9 +133,14 @@ def test_default_platforms_are_meta_only():
     assert cli.DEFAULT_PLATFORMS == ["instagram", "facebook", "threads"]
 
 
-def test_unlicensed_old_clips_are_never_pending(tmp_path):
-    card_clip = _make_clip(tmp_path, name="01_card")
-    old = tmp_path / "output" / "ja" / "vid" / "02_old.json"
-    old.write_text(json.dumps({k: v for k, v in META.items() if k != "mode"}), encoding="utf-8")
-    old.with_suffix(".mp4").write_bytes(b"x")
-    assert cli.pending_videos(tmp_path / "output", "ja", {}, ["instagram"]) == [card_clip]
+def test_videos_without_metadata_are_never_pending(tmp_path):
+    clip = _make_clip(tmp_path, name="01_clip")
+    (tmp_path / "output" / "ja" / "vid" / "02_nometa.mp4").write_bytes(b"x")
+    assert cli.pending_videos(tmp_path / "output", "ja", {}, ["instagram"]) == [clip]
+
+
+def test_unlicensed_clips_are_not_publishable(tmp_path):
+    card = _make_clip(tmp_path, name="01_card")
+    clip = _make_clip(tmp_path, name="02_clip")
+    clip.with_suffix(".json").write_text(json.dumps({**META, "mode": "clip", "license": ""}), encoding="utf-8")
+    assert cli.pending_videos(tmp_path / "output", "ja", {}, ["instagram"]) == [card]

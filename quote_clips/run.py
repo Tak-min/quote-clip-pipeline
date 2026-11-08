@@ -5,12 +5,12 @@ Usage:
 
 sources.csv columns:
     mode      card (default when empty) / clip
+    clip rows: url, speaker, category, work, cite, license (explicit reuse permission), style
     card rows: quote_id (from the app's data, --quotes-data) or quote[,quote_en] + speaker,
-               category, work[,speaker_en,work_en], cite[,cite_en] (text citation, never a URL)
-    clip rows: url, speaker, category, work, license (required), author
+               category, work[,speaker_en,work_en], cite[,cite_en]
     category: 偉人 / アニメ, work: 作品名 for anime. *_en are optional English display names
     (looked up / translated with the configured LLM when empty).
-    Clips are only for footage whose owner explicitly allows reuse (research/copyright/DECISION.md).
+    style: headline / plain / fit / crop (clip rows with a verified license only)
 Output (one folder per account language):
     output/ja/<video_id>/NN_<title>.mp4 + .json
     output/en/<video_id>/NN_<title>.mp4 + .json
@@ -29,8 +29,9 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from quote_clips.card import load_app_quotes, make_card_video
+from quote_clips.copywriter import write_copy
 from quote_clips.ingest import download_and_transcribe
-from quote_clips.render import compose, prepare_base
+from quote_clips.render import BOXES, WHITE, YELLOW, compose, prepare_base
 from quote_clips.selector import select_quotes
 from quote_clips.translate import english_names, subtitle_cards, subtitle_lines
 
@@ -176,8 +177,25 @@ def build_meta(lang: str, names: Dict[str, str], category: str, cand: Dict, sour
 
 
 def row_mode(row: Dict) -> str:
-    """Empty mode means card, so a forgotten column can never publish someone else's footage."""
+    """Empty mode means card, so a forgotten column cannot enable footage use."""
     return (row.get("mode") or "").strip().lower() or "card"
+
+
+CTA = {"ja": "ひとつの言葉が、明日を変える。\n名言アプリ「{app}」", "en": "One line can change tomorrow.\n{app} — the quote app"}
+NOTE = {
+    "ja": "本投稿は、著名人の言葉を教育・批評・解説する目的で、その一部を米国著作権法§107（フェアユース）の範囲にならい引用しております。",
+    "en": "This post quotes part of a public figure's words for education, commentary and criticism, in line with fair use (17 U.S.C. §107).",
+}
+
+
+def clip_caption(lang: str, quote: str, copy: Dict, app_name: str, tags: List[str], music_note: str) -> str:
+    """Shift-style post: quote, AI story, CTA (app name only, no link), hashtags, 【出典】, BGM credit."""
+    q = (f"\u201c{quote}\u201d" if lang == "en" else f"「{quote}」") if quote else ""
+    cite = copy.get("cite", "")
+    cite_line = (f"[Source] {cite}" if lang == "en" else f"【出典】{cite}") if cite else ""
+    parts = [q, copy.get("caption", ""), CTA[lang].format(app=app_name) if app_name else "", " ".join(tags),
+             cite_line, NOTE[lang], music_note]
+    return "\n\n".join(p for p in parts if p)
 
 
 def _credits(music_dir: str) -> Dict[str, str]:
@@ -264,8 +282,9 @@ def process_row(row: Dict, args: argparse.Namespace) -> List[str]:
     url = (row.get("url") or "").strip()
     license_name = (row.get("license") or "").strip()
     if not license_name:
-        # A clip is allowed only when a person wrote down the owner's reuse licence (DECISION.md ②).
         raise ValueError(f"clip row without license, skipped: {url}")
+    cite = (row.get("cite") or "").strip()
+    style = (row.get("style") or "").strip().lower() or args.style
     speaker = (row.get("speaker") or "").strip()
     work = (row.get("work") or "").strip()
     category = (row.get("category") or "").strip()
@@ -295,8 +314,7 @@ def process_row(row: Dict, args: argparse.Namespace) -> List[str]:
         names["en"] = {"speaker": en["speaker_en"], "work": en["work_en"]}
 
     credits = _credits(args.music_dir)
-    source = {lang: source_line(lang, url=url, author=(row.get("author") or "").strip(), license_name=license_name)
-              for lang in args.langs}
+    layout = style if style in (*BOXES, "fit", "crop") else args.layout
     outputs = []
     for i, cand in enumerate(cands, start=1):
         words = transcript.get("words") or []
@@ -304,31 +322,41 @@ def process_row(row: Dict, args: argparse.Namespace) -> List[str]:
                else clip_subtitles(segments, cand["start"], cand["end"]))
         base = str(cand_dir / f"_{video_id}_{i:02d}_base.mp4")
         try:
-            picture = prepare_base(transcript["video_path"], cand["start"], cand["end"], base, layout=args.layout)
+            picture = prepare_base(transcript["video_path"], cand["start"], cand["end"], base, layout=layout)
             cw = clip_words(words, cand["start"], cand["end"])
             for lang in args.langs:
                 cards = subtitle_cards(cw, speaker, src_lang, lang) if cw else None
                 if cards is None:  # rule-based fallback: sentence/pause cards + per-card translation
                     texts = subtitle_lines([s["text"] for s in raw], speaker, src_lang, lang)
                     cards = [{**s, "text": t} for s, t in zip(raw, texts)]
-                subs = split_cards(cards)
+                subs = split_cards(cards, 1 if style in BOXES else 2)  # Shift: one short line per card
                 title = cand.get(f"title_{lang}") or speaker
                 out_dir = Path(args.out_dir) / lang / video_id
                 out_dir.mkdir(parents=True, exist_ok=True)
                 final = str(out_dir / f"{i:02d}_{_slug(title)}.mp4")
                 n = names[lang]
+                app_name = args.app_name_en if lang == "en" else args.app_name
+                copy = (write_copy(n["speaker"], n["work"], cite, " / ".join(c["text"].replace("\n", "") for c in subs), lang)
+                        if style in BOXES else {})
+                info = [(t, WHITE) for t in copy.get("context", [])] + [(t, YELLOW) for t in copy.get("lesson", [])]
                 try:
-                    track = compose(base, subs, hook=cand.get(f"hook_{lang}", ""),
+                    track = compose(base, subs, hook=copy.get("headline") or cand.get(f"hook_{lang}", ""),
                                     telop=telop_text(n["speaker"], category, n["work"], lang),
-                                    app_name=args.app_name_en if lang == "en" else args.app_name,
-                                    out_path=final, picture=picture, music_dir=args.music_dir,
-                                    use_bgm=not args.no_bgm, tagline=args.app_tagline)
+                                    app_name=app_name, out_path=final, picture=picture, music_dir=args.music_dir,
+                                    use_bgm=not args.no_bgm, tagline=args.app_tagline, style=style if style in BOXES else "",
+                                    info=info, notify=copy.get("notify", ""), lang=lang)
                 except Exception as e:
                     logger.error(f"[{video_id} #{i} {lang}] render failed: {e}")
                     continue
                 music_note = credits.get(Path(track).name, "") if track else ""  # CC BY: credit the track used
-                meta = build_meta(lang, n, category, cand, source[lang], music_note, source_url=url)
-                meta.update({"mode": "clip", "license": license_name, "author": (row.get("author") or "").strip()})
+                source = source_line(lang, cite=copy.get("cite") or cite) if not license_name else source_line(
+                    lang, url=url, author=(row.get("author") or "").strip(), license_name=license_name)
+                meta = build_meta(lang, n, category, cand, source, music_note, source_url=url)
+                if copy:
+                    meta["description"] = clip_caption(lang, meta["quote"], copy, app_name, meta["hashtags"], music_note)
+                    meta["title"] = copy.get("headline", "").replace("\n", "") or meta["title"]
+                meta.update({"mode": "clip", "style": style, "copy": copy, "license": license_name,
+                             "author": (row.get("author") or "").strip()})
                 meta["subtitles"] = subs
                 Path(final).with_suffix(".json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
                 logger.info(f"Done: {final}")
@@ -355,7 +383,9 @@ def main() -> None:
     p.add_argument("--model-size", default="turbo", choices=["tiny", "base", "small", "medium", "turbo", "large-v3"])
     p.add_argument("--device", default="cpu")
     p.add_argument("--max-clips", type=int, default=3, help="Max clips per source video")
-    p.add_argument("--layout", default="fit", choices=["fit", "crop"])
+    p.add_argument("--layout", default="fit", choices=["fit", "crop"], help="Layout when --style is fit/crop")
+    p.add_argument("--style", default=os.getenv("QUOTE_STYLE", "headline"), choices=["headline", "plain", "fit", "crop"],
+                   help="headline = @shiftjp.app look, plain = @kachimind_jp look (per-row 'style' column overrides)")
     p.add_argument("--no-bgm", action="store_true")
     p.add_argument("--select-only", action="store_true", help="Stop after quote selection (no rendering)")
     p.add_argument("--quotes-data", default=os.getenv("QUOTES_DATA", "~/kotodama-codex/data"),
