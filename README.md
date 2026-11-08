@@ -119,7 +119,7 @@ API投稿にも適用されるか・Facebookで「リール」扱いになるか
 Pi（`taku8@100.102.144.116`、Debian 12 arm64）で **カード動画（英語）だけ** を作り、投稿は `~/sns-poster` に一本化している。
 このリポジトリ自身の投稿機能（`quote_clips.publish`）は Pi では使わない（二重投稿防止。`accounts.json` も置いていない）。
 
-- 配置: `~/quote-clip-pipeline`。Mac から `./deploy_to_pi.sh` で更新する。**コミット済みの HEAD**（カード専用の安全策が入った版）＋ `EXTRA` に書いたファイルだけを送り、アプリの名言データ（`~/kotodama-codex/data` の quotes_*.json / works.json / scenes.json）を `data/app/` へコピーし、Pi でテストを実行する。`.env`・`secrets/`・`output/`・`work/` は送らない
+- 配置: `~/quote-clip-pipeline`。Mac から `./deploy_to_pi.sh` でコミット済みの HEAD とアプリの名言データ（`~/kotodama-codex/data` の quotes_*.json / works.json / scenes.json）を送り、Pi でテストを実行する。`.env`・`secrets/`・`output/`・`work/` は送らない
 - venv: Python 3.11。カード動画に要るもの（numpy<2.4・loguru・pillow・python-dotenv・requests・pytest）だけ入れた。faster-whisper / yt-dlp は切り抜き用なので入れていない
 - フォント: `assets/fonts` の IBM Plex Sans JP（`QUOTE_FONT` もこれ）。予備として apt の fonts-noto-cjk
 - `.env`（600）: Groq/Gemini のキー（Mac の共有LLM設定から必要な分だけコピー）、`LLM_ENV_FILE`、`QUOTES_DATA=data/app`、`APP_NAME=KOTONEX`、`APP_TAGLINE=Now on the App Store`
@@ -128,3 +128,4 @@ Pi（`taku8@100.102.144.116`、Debian 12 arm64）で **カード動画（英語�
 - 状態: `state/used.json`（使った名言。全部使い切ったら一巡し直す）、`state/schedule-YYYY-MM-DD.json`（枠ごとの名言・ジョブID）
 - 手動: `.venv/bin/python -m quote_clips.kotonex_daily --dry-run`（選ぶだけ）/ `--now`（1本作って今すぐ投稿キューへ）
 - 投稿状況: `~/sns-poster/bin/sns-poster status`
+- 2026-11-08 の実績: YouTube と Instagram の最初の2枠は公開済み。Instagram は MP4 の edit list を除き、AAC 48kHz / 128kbps にして再送した。TikTok は開発者アプリの Direct Post 審査待ちでジョブを保留中。審査完了後に `~/sns-poster/.env` の `TIKTOK_AUDIT_APPROVED=1` を設定すると再試行する
