@@ -12,3 +12,4 @@ __pycache__/
 state/
 data/app/
 logs/
+node_modules/

@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "schedule": "node schedule.js"
+  },
+  "dependencies": {
+    "playwright": "1.65.0-alpha-2026-10-30"
+  }
+}

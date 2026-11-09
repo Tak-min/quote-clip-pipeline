@@ -1,5 +1,7 @@
 # DECISION: 名言ショートの著作権運用ルール（v6.1）
 
+2026-11-09 運用追記: TikTok の Direct Post API 審査申請は行わない。毎日の KOTONEX 動画は、Mac からログイン済み TikTok Studio の予約投稿画面を CDP で操作して登録する。以下の手動投稿の記述は当時の運用判断として残し、現在の予約操作は `tools/tiktok-studio/schedule.js` が行う。
+
 対象: `~/quote-clip-pipeline` の運用（日本語・英語の2アカウント、TikTok＋Meta系）。根拠と経緯は `loops.md`（第1〜6周、council 2回）。
 法的な断定ではない（弁護士の確認は受けていない）。「この運用ならリスクはこの程度、最悪ケースはこれ」という形で書く。
 

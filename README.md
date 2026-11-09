@@ -85,7 +85,7 @@ clip,,,,演説者名,,偉人,,,,,https://...,CC BY 4.0,権利者名
 - 文字起こしは `work/` にキャッシュされる（同じURL・同じモデルは再実行しない）。
 - 同梱BGM（Kevin MacLeod, CC BY 4.0）はクレジット表記が必要。`.json` の説明文に自動で入る。
 
-## 投稿（Instagram / Facebookリール / Threads は自動、TikTok は手動）
+## 投稿（Instagram / Facebookリール / Threads は API、KOTONEX の TikTok は Studio 予約）
 
 ```bash
 cp accounts.example.json accounts.json   # 言語ごとにMeta系のアカウントを書く
@@ -97,7 +97,7 @@ cp accounts.example.json accounts.json   # 言語ごとにMeta系のアカウン
 
 - `output/posted.json` に投稿結果を記録。再実行しても二重投稿しない。1つのSNSが失敗しても他は続行し、次回そのSNSだけ再挑戦。
 - **投稿されるのはカード動画と許可素材の切り抜きだけ**。それ以前に作った切り抜き（記録に `mode` が無いもの）は投稿対象から外れる。
-- **TikTok はアプリから手動で投稿**する（Content Posting API の監査は自社アカウント向けの投稿ツールを通さないため）。説明文は上の `--dry-run` で出す。
+- 単発の `quote_clips.publish` では TikTok はアプリから投稿する。毎日の KOTONEX キューは下記の Mac 側 TikTok Studio 予約で扱う。Content Posting API の監査は自社アカウント専用ツールを対象外としている。
 - 削除申し立てが来たら当日中に `delete` で Meta系から消し、TikTok はアプリで消す。手順は DECISION.md ③。
 - 認証情報は `secrets/`（トークンファイル）と環境変数（`.env`）に置く。どちらもgit管理外。
 - Meta の開発者アプリ・ビジネスは、アプリ本体の広告・ログインに使うものとは別に作る（DECISION.md ③）。
@@ -105,7 +105,7 @@ cp accounts.example.json accounts.json   # 言語ごとにMeta系のアカウン
 | SNS | 方式 | 準備 |
 |---|---|---|
 | YouTube | Data API `videos.insert` | Google CloudでOAuthクライアント（デスクトップ）を作り `secrets/youtube_client_secret.json` に置く → `python -m quote_clips.publish auth youtube --lang ja` で初回だけブラウザ認証（言語ごとに別チャンネルでログイン） |
-| TikTok | Content Posting API（Direct Post, ファイル分割アップロード） | 開発者アプリで `video.publish` を取得。`TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` を `.env` に、`{"access_token","refresh_token","expires_at"}` を `secrets/tiktok_<lang>.json` に。**TikTokの監査を通るまでは「自分のみ」公開でしか投稿できない** |
+| TikTok | TikTok Studio の予約投稿画面（KOTONEX 毎日キュー） | Mac の Brave で `@kotonex_app` にログインし、CDP を `127.0.0.1:9222` で有効にする。開発者 API は使用しない |
 | Instagram | Graph API リール（resumable upload でローカルファイルを直接送る） | プロ（ビジネス/クリエイター）アカウント＋Facebookページ連携、Facebookログイン for Business のアプリ。`ig_user_id` と長期トークン（環境変数名を `token_env` に） |
 | Facebookリール | Page `video_reels`（start → upload → finish） | ページの `page_id` とページアクセストークン（`pages_manage_posts` 等） |
 | Threads | Threads API（公開URLから取得させる方式のみ） | Threadsのユーザートークン。動画は**同じ回に投稿したInstagramリールの公開URLを再利用**する（ファイル置き場不要）。自前の公開URLがあれば `--public-base-url` |
@@ -123,9 +123,22 @@ Pi（`taku8@100.102.144.116`、Debian 12 arm64）で **カード動画（英語�
 - venv: Python 3.11。カード動画に要るもの（numpy<2.4・loguru・pillow・python-dotenv・requests・pytest）だけ入れた。faster-whisper / yt-dlp は切り抜き用なので入れていない
 - フォント: `assets/fonts` の IBM Plex Sans JP（`QUOTE_FONT` もこれ）。予備として apt の fonts-noto-cjk
 - `.env`（600）: Groq/Gemini のキー（Mac の共有LLM設定から必要な分だけコピー）、`LLM_ENV_FILE`、`QUOTES_DATA=data/app`、`APP_NAME=KOTONEX`、`APP_TAGLINE=Now on the App Store`
-- 毎日の流れ: `quote_clips/kotonex_daily.py` が JST 07:30 / 12:00 / 17:30 / 20:00 / 22:00 の枠ごとに、使っていない名言を1つ選ぶ（偉人4本＋アニメ1本〔20:00〕。存命の人物は除外、英語の本文・出典がデータにあるものだけ、アニメは短い引用だけ）→ `quote_clips.run --langs en` でカード動画を作る → 英語の投稿文（YouTube タイトル90字以内＋#Shorts、説明文にアプリのリンク、TikTok は「link in bio」、BGM のクレジット、ハッシュタグ5個）を作る → `sns-poster enqueue --at <時刻> --options-json` で YouTube・TikTok・Instagram に予約する
+- 毎日の流れ: `quote_clips/kotonex_daily.py` が JST 07:30 / 12:00 / 17:30 / 20:00 / 22:00 の枠ごとに、使っていない名言を1つ選ぶ（偉人4本＋アニメ1本〔20:00〕。存命の人物は除外、英語の本文・出典がデータにあるものだけ、アニメは短い引用だけ）→ `quote_clips.run --langs en` でカード動画を作る → 英語の投稿文（YouTube タイトル90字以内＋#Shorts、説明文にアプリのリンク、TikTok は「link in bio」、BGM のクレジット、ハッシュタグ5個）を作る → `sns-poster enqueue --at <時刻> --options-json` で YouTube・TikTok・Instagram のキューに置く。YouTube・Instagram は Pi の API、TikTok は Mac の Studio 予約が処理する
 - cron（Pi の taku8）: `10 5-21 * * *` に毎時実行。まだ予約していない未来の枠だけを埋めるので、Pi が止まっていても次の回で追いつく。ログは `logs/kotonex-daily.log`
 - 状態: `state/used.json`（使った名言。全部使い切ったら一巡し直す）、`state/schedule-YYYY-MM-DD.json`（枠ごとの名言・ジョブID）
 - 手動: `.venv/bin/python -m quote_clips.kotonex_daily --dry-run`（選ぶだけ）/ `--now`（1本作って今すぐ投稿キューへ）
 - 投稿状況: `~/sns-poster/bin/sns-poster status`
-- 2026-11-08 の実績: YouTube と Instagram の最初の2枠は公開済み。Instagram は MP4 の edit list を除き、AAC 48kHz / 128kbps にして再送した。TikTok は開発者アプリの Direct Post 審査待ちでジョブを保留中。審査完了後に `~/sns-poster/.env` の `TIKTOK_AUDIT_APPROVED=1` を設定すると再試行する
+- 2026-11-08 の実績: YouTube と Instagram の最初の2枠は公開済み。Instagram は MP4 の edit list を除き、AAC 48kHz / 128kbps にして再送した。Pi の TikTok API ジョブは保留のまま。現在の自社アカウント専用ツールは TikTok の Direct Post API 審査対象外なので、この用途で `TIKTOK_AUDIT_APPROVED=1` を設定しない。参照: https://developers.tiktok.com/docs/en/content-sharing-guidelines
+
+### KOTONEX の TikTok Studio 自動予約（Mac）
+
+`tools/tiktok-studio/schedule.js` が Pi の当日キューから未来の枠だけを取得し、ログイン済み Brave の TikTok Studio に動画・説明文・予約時刻・「あなたのブランド」表示を入力する。TikTok のコンテンツチェック完了を待ち、予約一覧に掲載された URL を `state/tiktok_studio_scheduled.json` に記録する。再実行時は記録と Studio 一覧を照合して重複を避ける。
+
+```bash
+cd ~/quote-clip-pipeline/tools/tiktok-studio
+npm ci --ignore-scripts
+node schedule.js --dry-run   # 当日残りの件数を確認
+node schedule.js             # 当日残りを予約
+```
+
+Mac の LaunchAgent `com.kotonex.tiktok-studio` が30分ごとに実行する。Mac が起動し、Pi に SSH 接続でき、Brave の CDP と TikTok のログインが生きている必要がある。失敗時は `logs/tiktok-studio.err.log` を確認し、上記のコマンドを再実行する。過去の枠は自動で繰り越さない。予約した動画の削除は TikTok Studio またはアプリで行う。
