@@ -244,7 +244,8 @@ def build_base(shots: List[Dict], durations: List[float], dst: str, style: str =
     try:
         subprocess.run(cmd, check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"ffmpeg scene base failed: {[ln for ln in e.stderr.splitlines() if "match" in ln or "Error" in ln][:3] or e.stderr[-800:]}") from e
+        hits = [ln for ln in e.stderr.splitlines() if "match" in ln or "Error" in ln][:3]
+        raise RuntimeError(f"ffmpeg scene base failed: {hits or e.stderr[-800:]}") from e
     return y, y + box_h
 
 
