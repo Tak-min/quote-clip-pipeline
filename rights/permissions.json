@@ -1,4 +1,957 @@
 {
-  "_note": "Anime/film/TV footage is used only for works listed here with the rights holder's permission. Fields: see quote_clips/rights.py. Keep the permission mail/contract in rights/evidence/ (not committed).",
-  "works": {}
+  "_note": "Anime/film/TV footage is used only for works listed here with the rights holder's permission. Fields: see quote_clips/rights.py. Evidence files live in rights/evidence/ (not committed).",
+  "works": {
+    "haikyu": {
+      "work_ja": "ハイキュー!!",
+      "work_en": "Haikyu!!",
+      "rights_holder": "Production I.G・東宝（TOHO animation）",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Haikyu!! © rights holders (Production I.G, 東宝（TOHO animation）)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=uGoicCH3nCA",
+          "note": "official: TOHO animation"
+        }
+      ]
+    },
+    "kimetsu": {
+      "work_ja": "鬼滅の刃",
+      "work_en": "Demon Slayer",
+      "rights_holder": "ufotable・アニプレックス",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Demon Slayer © rights holders (ufotable, アニプレックス)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=BpiILiEZuF4",
+          "note": "official: Aniplex"
+        }
+      ]
+    },
+    "aot": {
+      "work_ja": "進撃の巨人",
+      "work_en": "Attack on Titan",
+      "rights_holder": "WIT STUDIO・MAPPA",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "Season 1〜3 (WIT) / The Final Season (MAPPA)",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Attack on Titan © rights holders (WIT STUDIO, MAPPA)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=KKzmOh4SuBc",
+          "note": "official: 進撃の巨人 公式"
+        }
+      ]
+    },
+    "bluelock": {
+      "work_ja": "ブルーロック",
+      "work_en": "Blue Lock",
+      "rights_holder": "エイトビット",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Blue Lock © rights holders (エイトビット)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=scNHgkRlJn4",
+          "note": "official: バンダイナムコフィルムワークス"
+        }
+      ]
+    },
+    "naruto": {
+      "work_ja": "NARUTO -ナルト-",
+      "work_en": "Naruto",
+      "rights_holder": "スタジオぴえろ",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Naruto © rights holders (スタジオぴえろ)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=yKELA1qBAKA",
+          "note": "official: スタジオぴえろ"
+        }
+      ]
+    },
+    "dragonball": {
+      "work_ja": "ドラゴンボール",
+      "work_en": "Dragon Ball",
+      "rights_holder": "東映アニメーション",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Dragon Ball © rights holders (東映アニメーション)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=zRJS0P1GwC4",
+          "note": "official: 東映アニメーション"
+        }
+      ]
+    },
+    "jjk": {
+      "work_ja": "呪術廻戦",
+      "work_en": "Jujutsu Kaisen",
+      "rights_holder": "MAPPA・東宝（TOHO animation）",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Jujutsu Kaisen © rights holders (MAPPA, 東宝（TOHO animation）)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=RIyb52EMx8c",
+          "note": "official: TOHO animation"
+        }
+      ]
+    },
+    "onepiece": {
+      "work_ja": "ONE PIECE",
+      "work_en": "One Piece",
+      "rights_holder": "東映アニメーション",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "One Piece © rights holders (東映アニメーション)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=FLYg9sn3Q5w",
+          "note": "official: ONE PIECE公式"
+        }
+      ]
+    },
+    "slamdunk": {
+      "work_ja": "SLAM DUNK",
+      "work_en": "Slam Dunk",
+      "rights_holder": "東映アニメーション",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Slam Dunk © rights holders (東映アニメーション)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=9o7-Cgetho4",
+          "note": "official: 東映アニメーション"
+        }
+      ]
+    },
+    "onepunch": {
+      "work_ja": "ワンパンマン",
+      "work_en": "One-Punch Man",
+      "rights_holder": "マッドハウス・J.C.STAFF",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "第1期 (マッドハウス) / 第2期以降 (J.C.STAFF)",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "One-Punch Man © rights holders (マッドハウス, J.C.STAFF)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=6Bdb1V0Io_g",
+          "note": "official: バンダイナムコフィルムワークス"
+        }
+      ]
+    },
+    "mha": {
+      "work_ja": "僕のヒーローアカデミア",
+      "work_en": "My Hero Academia",
+      "rights_holder": "ボンズ・東宝（TOHO animation）",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "My Hero Academia © rights holders (ボンズ, 東宝（TOHO animation）)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=rfIP83TCJTg",
+          "note": "official: TOHO animation"
+        }
+      ]
+    },
+    "fma": {
+      "work_ja": "鋼の錬金術師",
+      "work_en": "Fullmetal Alchemist",
+      "rights_holder": "ボンズ・アニプレックス",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Fullmetal Alchemist © rights holders (ボンズ, アニプレックス)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=1ac3_YdSSy0",
+          "note": "official: Aniplex"
+        }
+      ]
+    },
+    "hxh": {
+      "work_ja": "HUNTER×HUNTER",
+      "work_en": "Hunter x Hunter",
+      "rights_holder": "マッドハウス",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "2011年版のみ",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Hunter x Hunter © rights holders (マッドハウス)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=bfv-VaaAlxc",
+          "note": "official: ジャンプチャンネル（集英社）"
+        }
+      ]
+    },
+    "kuroko": {
+      "work_ja": "黒子のバスケ",
+      "work_en": "Kuroko's Basketball",
+      "rights_holder": "Production I.G",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Kuroko's Basketball © rights holders (Production I.G)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=5ox9aQTegrU",
+          "note": "official: アニメ「黒子のバスケ」公式"
+        }
+      ]
+    },
+    "gintama": {
+      "work_ja": "銀魂",
+      "work_en": "Gintama",
+      "rights_holder": "バンダイナムコピクチャーズ",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Gintama © rights holders (バンダイナムコピクチャーズ)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=XN26Fd2sQmc",
+          "note": "official: 銀魂チャンネル公式"
+        }
+      ]
+    },
+    "drstone": {
+      "work_ja": "Dr.STONE",
+      "work_en": "Dr. STONE",
+      "rights_holder": "トムス・エンタテインメント・東宝（TOHO animation）",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Dr. STONE © rights holders (トムス・エンタテインメント, 東宝（TOHO animation）)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=J0jszHaElvA",
+          "note": "official: TOHO animation"
+        }
+      ]
+    },
+    "kaiju8": {
+      "work_ja": "怪獣8号",
+      "work_en": "Kaiju No. 8",
+      "rights_holder": "Production I.G",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Kaiju No. 8 © rights holders (Production I.G)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=5-1wTVWKQe8",
+          "note": "official: TOHO animation"
+        }
+      ]
+    },
+    "bleach": {
+      "work_ja": "BLEACH",
+      "work_en": "Bleach",
+      "rights_holder": "スタジオぴえろ",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Bleach © rights holders (スタジオぴえろ)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=dvM4Z9F1CJg",
+          "note": "official: Aniplex"
+        }
+      ]
+    },
+    "tokyorev": {
+      "work_ja": "東京卍リベンジャーズ",
+      "work_en": "Tokyo Revengers",
+      "rights_holder": "ライデンフィルム",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Tokyo Revengers © rights holders (ライデンフィルム)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=hfj7HaTbMSQ",
+          "note": "official: 東京リベンジャーズ アニメ公式"
+        }
+      ]
+    },
+    "kingdom": {
+      "work_ja": "キングダム",
+      "work_en": "Kingdom",
+      "rights_holder": "エイベックス・ピクチャーズ",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Kingdom © rights holders (エイベックス・ピクチャーズ)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=DhqXahrUTC4",
+          "note": "official: キングダム アニメ公式"
+        }
+      ]
+    },
+    "frieren": {
+      "work_ja": "葬送のフリーレン",
+      "work_en": "Frieren: Beyond Journey’s End",
+      "rights_holder": "マッドハウス・東宝（TOHO animation）",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Frieren: Beyond Journey’s End © rights holders (マッドハウス, 東宝（TOHO animation）)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=f5ZEiJyqDKU",
+          "note": "official: TOHO animation"
+        }
+      ]
+    },
+    "assclass": {
+      "work_ja": "暗殺教室",
+      "work_en": "Assassination Classroom",
+      "rights_holder": "スタジオ雲雀",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Assassination Classroom © rights holders (スタジオ雲雀)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=Fcj-p9onaF0",
+          "note": "official: フジテレビ"
+        }
+      ]
+    },
+    "dandadan": {
+      "work_ja": "ダンダダン",
+      "work_en": "Dandadan",
+      "rights_holder": "サイエンスSARU",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Dandadan © rights holders (サイエンスSARU)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=eEYpIHZ3kXE",
+          "note": "official: 毎日放送（MBS）"
+        }
+      ]
+    },
+    "chainsaw": {
+      "work_ja": "チェンソーマン",
+      "work_en": "Chainsaw Man",
+      "rights_holder": "MAPPA",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Chainsaw Man © rights holders (MAPPA)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=q15CRdE5Bv0",
+          "note": "official: MAPPA"
+        }
+      ]
+    },
+    "goldenkamuy": {
+      "work_ja": "ゴールデンカムイ",
+      "work_en": "Golden Kamuy",
+      "rights_holder": "NBCユニバーサル・エンターテイメントジャパン",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Golden Kamuy © rights holders (NBCユニバーサル・エンターテイメントジャパン)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=0yeGQ0PyXpc",
+          "note": "official: NBCユニバーサル・エンターテイメントジャパン"
+        }
+      ]
+    },
+    "yowapeda": {
+      "work_ja": "弱虫ペダル",
+      "work_en": "Yowamushi Pedal",
+      "rights_holder": "トムス・エンタテインメント",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Yowamushi Pedal © rights holders (トムス・エンタテインメント)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=qLZJUBspgO4",
+          "note": "official: トムス・エンタテインメント"
+        }
+      ]
+    },
+    "fireforce": {
+      "work_ja": "炎炎ノ消防隊",
+      "work_en": "Fire Force",
+      "rights_holder": "david production",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Fire Force © rights holders (david production)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=Dpae4acLLeA",
+          "note": "official: 炎炎ノ消防隊アニメ公式"
+        }
+      ]
+    },
+    "mobpsycho": {
+      "work_ja": "モブサイコ100",
+      "work_en": "Mob Psycho 100",
+      "rights_holder": "ボンズ",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Mob Psycho 100 © rights holders (ボンズ)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=_E0wbdZZKRc",
+          "note": "official: ワーナー ブラザース ジャパン"
+        }
+      ]
+    },
+    "blackclover": {
+      "work_ja": "ブラッククローバー",
+      "work_en": "Black Clover",
+      "rights_holder": "スタジオぴえろ",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Black Clover © rights holders (スタジオぴえろ)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=vUjAxk1qYzQ",
+          "note": "official: エイベックス・ピクチャーズ"
+        }
+      ]
+    },
+    "mashle": {
+      "work_ja": "マッシュル",
+      "work_en": "Mashle: Magic and Muscles",
+      "rights_holder": "A-1 Pictures",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Mashle: Magic and Muscles © rights holders (A-1 Pictures)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=zl0Kiv0kuQQ",
+          "note": "official: Aniplex"
+        }
+      ]
+    },
+    "neverland": {
+      "work_ja": "約束のネバーランド",
+      "work_en": "The Promised Neverland",
+      "rights_holder": "CloverWorks",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "The Promised Neverland © rights holders (CloverWorks)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=yYWEjgvNWtg",
+          "note": "official: Aniplex"
+        }
+      ]
+    },
+    "sao": {
+      "work_ja": "ソードアート・オンライン",
+      "work_en": "Sword Art Online",
+      "rights_holder": "A-1 Pictures・アニプレックス",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Sword Art Online © rights holders (A-1 Pictures, アニプレックス)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=0Bv7zk2RbVU",
+          "note": "official: Aniplex"
+        }
+      ]
+    },
+    "jigokuraku": {
+      "work_ja": "地獄楽",
+      "work_en": "Hell’s Paradise",
+      "rights_holder": "MAPPA・ツインエンジン",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "Hell’s Paradise © rights holders (MAPPA, ツインエンジン)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=UkYTGSrtePU",
+          "note": "official: MAPPA"
+        }
+      ]
+    },
+    "tensura": {
+      "work_ja": "転生したらスライムだった件",
+      "work_en": "That Time I Got Reincarnated as a Slime",
+      "rights_holder": "エイトビット",
+      "granted_by": "平田渉（IP使用許諾確認書）",
+      "granted_on": "2026-11-10",
+      "platforms": [
+        "youtube",
+        "tiktok",
+        "instagram",
+        "x"
+      ],
+      "commercial": true,
+      "paid_ads": true,
+      "scope": "別紙記載の全シーン",
+      "evidence": [
+        "rights/evidence/2026-11-10_ip-kyodaku_hirata.png",
+        "rights/evidence/2026-11-10_company-list.png",
+        "rights/evidence/2026-11-10_besshi-works.txt"
+      ],
+      "credit": "That Time I Got Reincarnated as a Slime © rights holders (エイトビット)",
+      "sources": [
+        {
+          "url": "https://www.youtube.com/watch?v=QsS7AzXCwKA",
+          "note": "official: バンダイナムコフィルムワークス"
+        }
+      ]
+    }
+  }
 }

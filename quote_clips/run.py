@@ -399,7 +399,14 @@ def process_row(row: Dict, args: argparse.Namespace) -> List[str]:
     video_id = transcript["video_id"]
     logger.info(f"{video_id}: lang={src_lang}, {len(segments)} segments, speaker={speaker}")
 
-    cands = select_quotes(segments, speaker=speaker, work=work, max_quotes=args.max_clips)
+    if (row.get("start") or "").strip() and (row.get("end") or "").strip():
+        # the scene is already known (the app's timestamp for this quote): one continuous cut, no LLM pick
+        start, end = float(row["start"]), float(row["end"])
+        cands = [{"start": max(0.0, start), "end": end, "score": 1.0,
+                  "quote_ja": (row.get("quote") or "").strip(), "quote_en": (row.get("quote_en") or "").strip(),
+                  "title_en": (row.get("quote_en") or "").strip()[:40], "title_ja": (row.get("quote") or "").strip()[:30]}]
+    else:
+        cands = select_quotes(segments, speaker=speaker, work=work, max_quotes=args.max_clips)
     cand_dir = Path(args.out_dir) / "_candidates"
     cand_dir.mkdir(parents=True, exist_ok=True)
     (cand_dir / f"{video_id}.json").write_text(json.dumps(cands, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -426,11 +433,18 @@ def process_row(row: Dict, args: argparse.Namespace) -> List[str]:
             picture = prepare_base(transcript["video_path"], cand["start"], cand["end"], base, layout=layout)
             cw = clip_words(words, cand["start"], cand["end"])
             for lang in args.langs:
-                cards = subtitle_cards(cw, speaker, src_lang, lang) if cw else None
-                if cards is None:  # rule-based fallback: sentence/pause cards + per-card translation
-                    texts = subtitle_lines([s["text"] for s in raw], speaker, src_lang, lang)
-                    cards = [{**s, "text": t} for s, t in zip(raw, texts)]
-                subs = split_cards(cards, 1 if style in BOXES else 2)  # Shift: one short line per card
+                fixed = cand.get(f"quote_{lang}", "") if (row.get("start") or "").strip() else ""
+                if fixed and lang == "en":
+                    # the app's own wording for this line, timed to when it is spoken in the scene
+                    from quote_clips.footage import spread_cards
+                    span = (cw[0]["start"], cw[-1]["end"]) if cw else (0.3, cand["end"] - cand["start"] - 0.3)
+                    subs = spread_cards(fixed, span[0], span[1], cand["end"] - cand["start"])
+                else:
+                    cards = subtitle_cards(cw, speaker, src_lang, lang) if cw else None
+                    if cards is None:  # rule-based fallback: sentence/pause cards + per-card translation
+                        texts = subtitle_lines([s["text"] for s in raw], speaker, src_lang, lang)
+                        cards = [{**s, "text": t} for s, t in zip(raw, texts)]
+                    subs = split_cards(cards, 1 if style in BOXES else 2)  # Shift: one short line per card
                 title = cand.get(f"title_{lang}") or speaker
                 out_dir = Path(args.out_dir) / lang / video_id
                 out_dir.mkdir(parents=True, exist_ok=True)

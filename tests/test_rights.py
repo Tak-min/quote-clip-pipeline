@@ -31,13 +31,15 @@ def test_incomplete_entry_is_not_permitted(tmp_path, change):
     assert rights.find("w", ALL, p) is None
 
 
-def test_shipped_registry_permits_nothing():
-    assert rights.permitted(ALL) == {}
+def test_shipped_registry_entries_are_complete():
+    works = rights.load()
+    assert works and all(not rights.problems(v, ALL) for v in works.values())
+    assert "ippo" not in works and "worldtrigger" not in works  # not in the 2026-11-10 別紙
 
 
 def test_anime_clip_row_without_permission_is_refused(monkeypatch):
     monkeypatch.setattr(run, "download_and_transcribe", lambda **k: pytest.fail("must not download"))
-    row = {"mode": "clip", "url": "https://example.com/v", "category": "アニメ", "work": "ハイキュー!!",
+    row = {"mode": "clip", "url": "https://example.com/v", "category": "アニメ", "work": "はじめの一歩",
            "license": "whatever"}
     with pytest.raises(ValueError, match="permission"):
         run.process_row(row, argparse.Namespace())

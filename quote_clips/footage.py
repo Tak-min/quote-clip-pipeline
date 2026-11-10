@@ -320,3 +320,17 @@ def card_timings(cards: List[str], lead: float = 0.4, tail: float = 1.6) -> List
         t += d
     subs[0]["start"] = 0.0
     return subs
+
+
+def spread_cards(text: str, t0: float, t1: float, total: float) -> List[Dict]:
+    """Subtitle cards for a known line, spread over the time it is spoken (t0..t1), sized by length."""
+    cards = quote_cards(text)
+    t0, t1 = max(0.0, t0), max(t0 + 0.8 * len(cards), t1)
+    weights = [len(c) + 8 for c in cards]
+    subs, t = [], t0
+    for c, w in zip(cards, weights):
+        d = (t1 - t0) * w / sum(weights)
+        subs.append({"text": c, "start": round(t, 3), "end": round(t + d, 3)})
+        t += d
+    subs[-1]["end"] = round(max(subs[-1]["end"], total), 3)
+    return subs

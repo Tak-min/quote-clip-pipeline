@@ -159,26 +159,42 @@ def enqueue(video: Path, posts: Dict, at: dt.datetime, meta: Dict) -> str:
 # ── anime / film / TV footage with the rights holder's permission (DECISION.md v7) ──
 
 
-def render_permitted_clip(out_dir: Path) -> Optional[tuple]:
-    """One continuous scene with its original audio from a work in rights/permissions.json.
+def _app_json(name: str) -> Dict:
+    path = Path(os.path.expanduser(os.getenv("QUOTES_DATA", "~/kotodama-codex/data"))) / name
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
 
-    Rotates through the recorded source URLs (state/used_sources.json). Returns (video, meta)
-    or None when no work is permitted or the render fails (the caller then makes a scene short).
+
+def official_clip(q: Dict) -> Optional[Dict]:
+    """The app's timestamped scene for this quote, if it is uploaded by an official channel."""
+    clip = (_app_json("scenes.json").get(q["id"]) or {}).get("clip") or {}
+    official = {m.get("channel") for m in (_app_json("media.json").get("works") or {}).values()} - {None, ""}
+    if clip.get("youtube") and clip.get("channel") in official:
+        return clip
+    return None
+
+
+def render_permitted_clip(q: Dict, out_dir: Path) -> Optional[tuple]:
+    """The quote's own scene, cut as one continuous shot with its original audio (DECISION.md v7).
+
+    Only for works in rights/permissions.json and scenes uploaded by an official channel.
+    Returns (video, meta), or None so the caller makes a stock-footage scene short instead.
     """
-    grants = rights.permitted(["youtube", "tiktok", "instagram"])
-    if not grants:
+    grant = rights.find(q.get("work_id") or "", ["youtube", "tiktok", "instagram"])
+    clip = official_clip(q) if grant else None
+    if not clip:
         return None
-    used_path = STATE / "used_sources.json"
-    used = set(_load(used_path, []))
-    sources = [(wid, g, s["url"]) for wid, g in sorted(grants.items()) for s in g["sources"] if s.get("url")]
-    fresh = [x for x in sources if x[2] not in used] or sources
-    if len(fresh) == len(sources):
-        used.clear()
-    wid, grant, url = fresh[0]
-    work_ja, work_en = grant.get("work_ja", wid), grant.get("work_en", wid)
+    url = f"https://www.youtube.com/watch?v={clip['youtube']}"
+    end = clip.get("end") or clip["start"] + 20
+    import csv, io
+    buf = io.StringIO()
+    w = csv.writer(buf)
+    w.writerow(["mode", "url", "category", "work", "work_en", "work_id", "speaker", "speaker_en", "quote", "quote_en",
+                "start", "end", "style"])
+    w.writerow(["clip", url, "アニメ", grant.get("work_ja", ""), grant.get("work_en", ""), grant["work_id"],
+                q.get("speaker_ja", ""), q.get("speaker_en", ""), q.get("text_ja", ""), q.get("text_en", ""),
+                clip["start"], end, "headline"])
     with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, encoding="utf-8") as f:
-        f.write("mode,url,category,work,work_en,work_id,style\n")
-        f.write(f"clip,{url},アニメ,{work_ja},{work_en},{wid},headline\n")
+        f.write(buf.getvalue())
         csv_path = f.name
     before = set((out_dir / LANG).glob("*/*.mp4"))
     try:
@@ -186,22 +202,21 @@ def render_permitted_clip(out_dir: Path) -> Optional[tuple]:
                         "--out-dir", str(out_dir), "--max-clips", "1",
                         "--model-size", os.getenv("WHISPER_MODEL", "small")], cwd=ROOT, check=True)
     except subprocess.CalledProcessError as e:
-        logger.error(f"permitted clip {wid} {url} failed: {e}")
+        logger.error(f"permitted clip {q['id']} {url} failed: {e}")
         return None
     finally:
         os.unlink(csv_path)
-    new = sorted(set((out_dir / LANG).glob("*/*.mp4")) - before - set((out_dir / LANG).glob("_*/*.mp4")))
-    new = [v for v in new if v.parent.name not in ("cards", "scenes") and v.with_suffix(".json").exists()]
+    new = [v for v in sorted(set((out_dir / LANG).glob("*/*.mp4")) - before)
+           if v.parent.name not in ("cards", "scenes") and v.with_suffix(".json").exists()]
     if not new:
         return None
     video = new[0]
     meta = json.loads(video.with_suffix(".json").read_text(encoding="utf-8"))
-    meta["speaker"] = meta.get("speaker") or work_en
-    meta["cite"] = f"\u2014 {work_en}"
+    meta["quote"] = q.get("text_en") or meta.get("quote", "")
+    meta["speaker"] = q.get("speaker_en") or grant.get("work_en", "")
+    meta["cite"] = f"\u2014 {q.get('speaker_en', '')} ({grant.get('work_en', '')}) {q.get('source_en', '')}".strip()
     meta["description"] = meta.get("description", "") + f"\nFootage: {grant['credit']} (used with permission)"
     video.with_suffix(".json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
-    used.add(url)
-    _save(used_path, sorted(used))
     return video, meta
 
 
@@ -238,8 +253,13 @@ def run(now: dt.datetime, data_dir: Path, dry_run: bool = False, immediate: bool
         if not immediate and at < now + dt.timedelta(minutes=lead_min):
             continue  # slot already passed (or too close to render in time)
         entry = sched.get(hhmm) or {}
+        candidates = pool[kind]
+        if kind == "anime":  # prefer quotes whose own scene we may use (permitted work + official upload)
+            clipable = [x for x in candidates if x["id"] not in used and official_clip(x)
+                        and rights.find(x.get("work_id") or "", ["youtube", "tiktok", "instagram"])]
+            candidates = clipable or candidates
         q = next((x for x in pool[kind] if x["id"] == entry.get("quote_id")), None) or \
-            pick(pool[kind], used, rng, prefer, today_speakers)
+            pick(candidates, used, rng, prefer, today_speakers)
         entry.update(quote_id=q["id"], speaker=q["speaker_ja"], at=at.isoformat())
         sched[hhmm] = entry
         today_speakers.add(q["speaker_ja"])
@@ -249,7 +269,7 @@ def run(now: dt.datetime, data_dir: Path, dry_run: bool = False, immediate: bool
             continue
         _save(sched_path, sched)
         try:
-            licensed = render_permitted_clip(ROOT / "output" / "kotonex" / day) if kind == "anime" else None
+            licensed = render_permitted_clip(q, ROOT / "output" / "kotonex" / day) if kind == "anime" else None
             if licensed:
                 video, meta = licensed
                 entry["clip"] = meta.get("source_url", "")
