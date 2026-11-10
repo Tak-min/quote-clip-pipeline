@@ -83,23 +83,16 @@ async function verifyAccount(page) {
 async function existingUrl(page, job) {
   await page.goto('https://www.tiktok.com/tiktokstudio/content', { waitUntil: 'domcontentloaded' });
   await page.getByText(/\d+件の投稿/).first().waitFor({ timeout: 30000 });
-  const firstLine = job.caption.split('\n')[0].trim().slice(0, 55);
-  const [year, month, day] = job.at.slice(0, 10).split('-').map(Number);
-  const dateLabel = `${month}月${day}日`;
+  // Match on the caption's first line only. The list no longer shows "M月D日 … GMT+9", and
+  // requiring it made every check fail, so each run re-submitted the same video (2026-11-10:
+  // 4 duplicates). Captions are unique per quote, and quotes do not repeat within the visible list.
+  await page.waitForTimeout(3000);
+  const norm = s => s.replace(/\s+/g, ' ').trim();
+  const firstLine = norm(job.caption.split('\n')[0]).slice(0, 40);
   for (const link of await page.locator(`a[href*="/@${account}/video/"]`).all()) {
-    if (!(await link.innerText()).includes(firstLine)) continue;
-    const dated = await link.evaluate((el, date) => {
-      let node = el;
-      for (let i = 0; i < 8 && node; i++, node = node.parentElement) {
-        const value = node.innerText || '';
-        if (value.includes(date) && value.includes('GMT+9')) return true;
-      }
-      return false;
-    }, dateLabel);
-    if (dated) {
-      const href = await link.getAttribute('href');
-      return new URL(href, 'https://www.tiktok.com').href;
-    }
+    if (!norm(await link.innerText()).includes(firstLine)) continue;
+    const href = await link.getAttribute('href');
+    return new URL(href, 'https://www.tiktok.com').href;
   }
   return null;
 }
