@@ -26,7 +26,9 @@ from typing import Dict, List, Optional
 
 from loguru import logger
 
-from quote_clips.llm import _config, call_llm, parse_json
+from dotenv import dotenv_values
+
+from quote_clips.llm import DEFAULT_SHARED_ENV, _config, call_llm, parse_json
 from quote_clips.render import BOXES, FPS, H, W
 
 UA = {"User-Agent": "quote-clip-pipeline/1.0"}
@@ -56,7 +58,11 @@ Return JSON only: ["query 1", "query 2", ...]"""
 
 
 def _key(name: str) -> str:
-    return _config().get(name, "")
+    """Env / LLM_ENV_FILE first, then the shared key file (on the Pi LLM_ENV_FILE points at this repo's .env)."""
+    value = _config().get(name, "")
+    if not value and DEFAULT_SHARED_ENV.is_file():
+        value = dotenv_values(DEFAULT_SHARED_ENV).get(name) or ""
+    return value
 
 
 def _get_json(url: str, headers: Optional[Dict] = None) -> Dict:
