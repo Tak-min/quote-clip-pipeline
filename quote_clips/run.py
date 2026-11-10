@@ -29,11 +29,16 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from quote_clips.card import load_app_quotes, make_card_video
+from quote_clips import rights
 from quote_clips.copywriter import write_copy
 from quote_clips.ingest import download_and_transcribe
 from quote_clips.render import BOXES, WHITE, YELLOW, compose, prepare_base
 from quote_clips.selector import select_quotes
 from quote_clips.translate import english_names, subtitle_cards, subtitle_lines
+
+
+PERMISSION_CATEGORIES = ("アニメ", "映画", "テレビ")
+PLATFORMS = [p.strip() for p in os.getenv("POST_PLATFORMS", "youtube,tiktok,instagram").split(",") if p.strip()]
 
 
 def clip_subtitles(segments: List[Dict], start: float, end: float) -> List[Dict]:
@@ -370,13 +375,20 @@ def process_scene(row: Dict, args: argparse.Namespace, app_quotes: Dict[str, Dic
 def process_row(row: Dict, args: argparse.Namespace) -> List[str]:
     url = (row.get("url") or "").strip()
     license_name = (row.get("license") or "").strip()
-    if not license_name:
-        raise ValueError(f"clip row without license, skipped: {url}")
     cite = (row.get("cite") or "").strip()
-    style = (row.get("style") or "").strip().lower() or args.style
+    style = (row.get("style") or "").strip().lower() or getattr(args, "style", "headline")
     speaker = (row.get("speaker") or "").strip()
     work = (row.get("work") or "").strip()
     category = (row.get("category") or "").strip()
+    if category in PERMISSION_CATEGORIES or (row.get("work_id") or "").strip():
+        # anime / film / TV: only with the rights holder's permission on record (DECISION.md v7)
+        grant = rights.find((row.get("work_id") or "").strip() or work, PLATFORMS)
+        if not grant:
+            raise ValueError(f"no rights-holder permission recorded for {work or row.get('work_id')}; skipped")
+        license_name = f"Used with permission of {grant['rights_holder']} ({grant['granted_on']})"
+        row = {**row, "author": grant["credit"]}
+    if not license_name:
+        raise ValueError(f"clip row without license, skipped: {url}")
 
     transcript = download_and_transcribe(
         url=url, work_dir=args.work_dir, model_size=args.model_size,

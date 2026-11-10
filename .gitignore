@@ -13,3 +13,5 @@ state/
 data/app/
 logs/
 node_modules/
+rights/evidence/*
+!rights/evidence/.gitkeep

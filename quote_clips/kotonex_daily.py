@@ -30,6 +30,8 @@ from typing import Dict, List, Optional
 from dotenv import load_dotenv
 from loguru import logger
 
+from quote_clips import rights
+
 ROOT = Path(__file__).resolve().parent.parent
 STATE = ROOT / "state"
 JST = dt.timezone(dt.timedelta(hours=9))
@@ -154,6 +156,55 @@ def enqueue(video: Path, posts: Dict, at: dt.datetime, meta: Dict) -> str:
     return out.stdout.strip().splitlines()[-1]
 
 
+# ── anime / film / TV footage with the rights holder's permission (DECISION.md v7) ──
+
+
+def render_permitted_clip(out_dir: Path) -> Optional[tuple]:
+    """One continuous scene with its original audio from a work in rights/permissions.json.
+
+    Rotates through the recorded source URLs (state/used_sources.json). Returns (video, meta)
+    or None when no work is permitted or the render fails (the caller then makes a scene short).
+    """
+    grants = rights.permitted(["youtube", "tiktok", "instagram"])
+    if not grants:
+        return None
+    used_path = STATE / "used_sources.json"
+    used = set(_load(used_path, []))
+    sources = [(wid, g, s["url"]) for wid, g in sorted(grants.items()) for s in g["sources"] if s.get("url")]
+    fresh = [x for x in sources if x[2] not in used] or sources
+    if len(fresh) == len(sources):
+        used.clear()
+    wid, grant, url = fresh[0]
+    work_ja, work_en = grant.get("work_ja", wid), grant.get("work_en", wid)
+    with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, encoding="utf-8") as f:
+        f.write("mode,url,category,work,work_en,work_id,style\n")
+        f.write(f"clip,{url},アニメ,{work_ja},{work_en},{wid},headline\n")
+        csv_path = f.name
+    before = set((out_dir / LANG).glob("*/*.mp4"))
+    try:
+        subprocess.run([sys.executable, "-m", "quote_clips.run", "--sources", csv_path, "--langs", LANG,
+                        "--out-dir", str(out_dir), "--max-clips", "1",
+                        "--model-size", os.getenv("WHISPER_MODEL", "small")], cwd=ROOT, check=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"permitted clip {wid} {url} failed: {e}")
+        return None
+    finally:
+        os.unlink(csv_path)
+    new = sorted(set((out_dir / LANG).glob("*/*.mp4")) - before - set((out_dir / LANG).glob("_*/*.mp4")))
+    new = [v for v in new if v.parent.name not in ("cards", "scenes") and v.with_suffix(".json").exists()]
+    if not new:
+        return None
+    video = new[0]
+    meta = json.loads(video.with_suffix(".json").read_text(encoding="utf-8"))
+    meta["speaker"] = meta.get("speaker") or work_en
+    meta["cite"] = f"\u2014 {work_en}"
+    meta["description"] = meta.get("description", "") + f"\nFootage: {grant['credit']} (used with permission)"
+    video.with_suffix(".json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+    used.add(url)
+    _save(used_path, sorted(used))
+    return video, meta
+
+
 # ── main ─────────────────────────────────────────────────────────────────
 
 
@@ -198,8 +249,13 @@ def run(now: dt.datetime, data_dir: Path, dry_run: bool = False, immediate: bool
             continue
         _save(sched_path, sched)
         try:
-            video = render(q["id"], ROOT / "output" / "kotonex" / day)
-            meta = json.loads(video.with_suffix(".json").read_text(encoding="utf-8"))
+            licensed = render_permitted_clip(ROOT / "output" / "kotonex" / day) if kind == "anime" else None
+            if licensed:
+                video, meta = licensed
+                entry["clip"] = meta.get("source_url", "")
+            else:
+                video = render(q["id"], ROOT / "output" / "kotonex" / day)
+                meta = json.loads(video.with_suffix(".json").read_text(encoding="utf-8"))
             posts = build_posts(meta, q.get("kind") == "anime")
             entry["job"] = enqueue(video, posts, at, {"quote_id": q["id"], "source": "quote-clip-pipeline"})
             entry["title"] = posts["title"]
