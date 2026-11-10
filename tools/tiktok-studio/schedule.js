@@ -10,7 +10,9 @@ const mediaDir = path.join(root, 'state/tiktok-studio');
 const host = 'taku8@100.102.144.116';
 const queue = '/home/taku8/sns-poster/queue/pending';
 const account = 'kotonex_app';
-const cdp = 'http://127.0.0.1:9222';
+const cdp = process.env.TIKTOK_CDP || 'http://127.0.0.1:9222';
+// On the Pi (KOTONEX_LOCAL=1) the queue, videos and sns-poster are local: no ssh/scp.
+const local = process.env.KOTONEX_LOCAL === '1';
 const remoteList = String.raw`
 from pathlib import Path
 import json
@@ -41,13 +43,19 @@ function todayJst() {
 }
 
 function jobsToday() {
-  const raw = run('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', host, 'python3', '-'], { input: remoteList });
+  const raw = local ? run('python3', ['-'], { input: remoteList })
+    : run('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', host, 'python3', '-'], { input: remoteList });
   return raw.trim().split('\n').filter(Boolean).map(line => JSON.parse(line)).filter(job =>
     job.at.slice(0, 10) === todayJst() && Date.parse(job.at) > Date.now() + 20 * 60 * 1000);
 }
 
 function getVideo(job) {
   if (!/^\d{8}-\d{6}-[a-z0-9]+$/.test(job.id)) throw new Error('Unexpected queue ID');
+  if (local) {
+    const queued = path.join(queue, job.id, 'video.mp4');
+    if (fs.statSync(queued).size !== job.size) throw new Error(`Video size mismatch: ${job.id}`);
+    return queued;
+  }
   fs.mkdirSync(mediaDir, { recursive: true });
   const local = path.join(mediaDir, `${job.id}.mp4`);
   if (!fs.existsSync(local) || fs.statSync(local).size !== job.size) {
@@ -61,8 +69,9 @@ function getVideo(job) {
 function markPiScheduled(job, url) {
   if (!new RegExp(`^https://www\\.tiktok\\.com/@${account}/video/\\d+$`).test(url))
     throw new Error(`Unexpected TikTok video URL: ${url}`);
-  run('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', host,
-    '/home/taku8/sns-poster/bin/sns-poster', 'mark-tiktok', job.id, url]);
+  const poster = '/home/taku8/sns-poster/bin/sns-poster';
+  if (local) run(poster, ['mark-tiktok', job.id, url]);
+  else run('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=8', host, poster, 'mark-tiktok', job.id, url]);
 }
 
 async function clickJs(page, selector) {
