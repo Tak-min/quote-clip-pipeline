@@ -4,7 +4,7 @@ Usage:
     .venv/bin/python -m quote_clips.run --sources sources.csv --app-name "アプリ名"
 
 sources.csv columns:
-    mode      card (default when empty) / clip
+    mode      card (default when empty) / scene (headline layout, PD + stock footage) / clip
     clip rows: url, speaker, category, work, cite, license (explicit reuse permission), style
     card rows: quote_id (from the app's data, --quotes-data) or quote[,quote_en] + speaker,
                category, work[,speaker_en,work_en], cite[,cite_en]
@@ -278,6 +278,95 @@ def process_card(row: Dict, args: argparse.Namespace, app_quotes: Dict[str, Dict
     return outputs
 
 
+def footage_note(shots: List[Dict]) -> str:
+    credits = []
+    for s in shots:
+        c = s.get("credit", "")
+        if c and c not in credits:
+            credits.append(c)
+    return ("Footage: " + ", ".join(credits)) if credits else ""
+
+
+def process_scene(row: Dict, args: argparse.Namespace, app_quotes: Dict[str, Dict]) -> List[str]:
+    """Headline-style short (reference: output/en/KaL4ukHZmlE) with licence-clean scene footage.
+
+    Same layout as the clip shorts: 2-line headline, 16:9 scene with one subtitle line per shot,
+    white context + yellow lesson below, app notification and end card. The scene is the speaker's
+    PD portrait/archival clip from the app plus Pexels/Pixabay stock video (never anime/film/TV).
+    """
+    from quote_clips import footage  # lazy: card/clip runs do not need it
+
+    f = card_fields(row, app_quotes)
+    q = app_quotes.get(f["id"], {})
+    key = f["id"] or _slug(f["quote_en"] or f["quote_ja"])
+    credits = _credits(args.music_dir)
+    resources = Path(args.app_resources).expanduser()
+    if not resources.is_dir():  # Pi: deploy_to_pi.sh ships Portraits/ and Clips/ next to the quote data
+        resources = Path(args.quotes_data).expanduser() / "Resources"
+    outputs = []
+    for lang in args.langs:
+        quote = f[f"quote_{lang}"].replace("\n", " ").strip()
+        if not quote or lang != "en":  # subtitle splitting/timing is word-based (English)
+            logger.warning(f"[scene {key}] {lang} not supported; skipped")
+            continue
+        speaker, work = f[f"speaker_{lang}"] or f["speaker_ja"], f[f"work_{lang}"]
+        out_dir = Path(args.out_dir) / lang / "scenes"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        final = out_dir / f"{key}_{_slug(speaker)}.mp4"
+        if final.exists():
+            logger.info(f"Exists, skipped: {final}")
+            outputs.append(str(final))
+            continue
+        subs = footage.card_timings(footage.quote_cards(quote))
+        durations = [s["end"] - s["start"] for s in subs]
+        durations[0] += subs[0]["start"]
+        shots: List[Dict] = []
+        media = footage.app_media(q, resources, Path(args.quotes_data).expanduser()) if q.get("kind") != "anime" else None
+        if media:
+            shots.append(media)
+        need = len(subs) - len(shots)
+        if need > 0:
+            queries = footage.scene_queries(quote, speaker if q.get("kind") != "anime" else "", work,
+                                            f.get(f"scene_{lang}", ""), q.get("scenes") or [], need + 2)
+            shots += footage.stock_shots(queries, need, Path(args.work_dir) / "footage", seed=f"{key}:{lang}")
+        if not shots:
+            raise RuntimeError(f"[scene {key}] no footage found")
+        while len(shots) < len(subs):  # too few distinct clips: reuse from the start
+            shots.append(shots[len(shots) % max(1, len(shots))])
+        base = str(out_dir / f"_{key}_base.mp4")
+        try:
+            picture = footage.build_base(shots, durations, base)
+            cite = f[f"cite_{lang}"]
+            copy = write_copy(speaker if q.get("kind") != "anime" else f"{speaker} ({work})" if speaker else "",
+                              work, cite, quote, lang)
+            who = telop_text(speaker, f["category"], work, lang)  # the credit line is never left to the LLM
+            context = copy.get("context", [])
+            if not context or (speaker and speaker.split()[-1] not in context[0]) or (work and work not in context[0]):
+                context = [who] + context[1:2]
+            copy["context"] = context
+            info = [(t, WHITE) for t in context] + [(t, YELLOW) for t in copy.get("lesson", [])]
+            app_name = args.app_name_en if lang == "en" else args.app_name
+            track = compose(base, subs, hook=copy.get("headline", ""), telop="", app_name=app_name,
+                            out_path=str(final), picture=picture, music_dir=args.music_dir,
+                            use_bgm=not args.no_bgm, tagline=args.app_tagline, style="headline", info=info,
+                            notify=copy.get("notify", ""), lang=lang)
+        finally:
+            if os.path.exists(base):
+                os.remove(base)
+        music_note = credits.get(Path(track).name, "") if track else ""
+        foot = footage_note(shots)
+        cand = {f"quote_{lang}": quote, f"title_{lang}": quote[:40]}
+        cite_line = " ".join(x for x in (f"— {telop_text(speaker, f['category'], work, lang)}", cite) if x)
+        meta = build_meta(lang, {"speaker": speaker, "work": work}, f["category"], cand,
+                          source_line(lang, cite=cite), "\n".join(x for x in (music_note, foot) if x))
+        meta.update({"mode": "scene", "quote_id": f["id"], "cite": cite_line, "copy": copy, "subtitles": subs,
+                     "footage": [{k: s.get(k, "") for k in ("id", "credit", "page", "query", "path")} for s in shots]})
+        final.with_suffix(".json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+        logger.info(f"Done: {final}")
+        outputs.append(str(final))
+    return outputs
+
+
 def process_row(row: Dict, args: argparse.Namespace) -> List[str]:
     url = (row.get("url") or "").strip()
     license_name = (row.get("license") or "").strip()
@@ -390,6 +479,8 @@ def main() -> None:
     p.add_argument("--select-only", action="store_true", help="Stop after quote selection (no rendering)")
     p.add_argument("--quotes-data", default=os.getenv("QUOTES_DATA", "~/kotodama-codex/data"),
                    help="App quote data folder for card rows that use quote_id")
+    p.add_argument("--app-resources", default=os.getenv("APP_RESOURCES", "~/kotodama-codex/Resources"),
+                   help="App Resources folder (Portraits/, Clips/) for scene rows")
     args = p.parse_args()
     args.langs = [x.strip() for x in args.langs.split(",") if x.strip()]
     args.app_name_en = args.app_name_en or args.app_name
@@ -408,6 +499,9 @@ def main() -> None:
             if row_mode(row) == "card":
                 if not args.select_only:
                     total += process_card(row, args, app_quotes)
+            elif row_mode(row) == "scene":
+                if not args.select_only:
+                    total += process_scene(row, args, app_quotes)
             else:
                 total += process_row(row, args)
         except Exception as e:

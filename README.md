@@ -123,6 +123,7 @@ Pi（`taku8@100.102.144.116`、Debian 12 arm64）で **カード動画（英語�
 - venv: Python 3.11。カード動画に要るもの（numpy<2.4・loguru・pillow・python-dotenv・requests・pytest）だけ入れた。faster-whisper / yt-dlp は切り抜き用なので入れていない
 - フォント: `assets/fonts` の IBM Plex Sans JP（`QUOTE_FONT` もこれ）。予備として apt の fonts-noto-cjk
 - `.env`（600）: Groq/Gemini のキー（Mac の共有LLM設定から必要な分だけコピー）、`LLM_ENV_FILE`、`QUOTES_DATA=data/app`、`APP_NAME=KOTONEX`、`APP_TAGLINE=Now on the App Store`
+- 動画の形式（2026-11-10〜）: 参考 `output/en/KaL4ukHZmlE` と同じ headline レイアウト（上に2行見出し・中央に16:9のシーン映像＋1行字幕・下に白の発言者/状況と黄色の教訓・終盤にアプリ通知・末尾カード）。シーン映像は `quote_clips/footage.py` が集める: 発言者のPD/CC BYの肖像・PD記録映像（アプリの `Resources/`）＋ Pexels/Pixabay のストック映像（商用・改変可）。アニメ・映画・TVの映像は使わない（DECISION.md）。映像が取れないときは従来のテキストカードに戻る。`KOTONEX_MODE=card` でテキストカードに固定。Pi の `.env` に `PEXELS_API_KEY`（予備に `PIXABAY_API_KEY`）が必要
 - 毎日の流れ: `quote_clips/kotonex_daily.py` が JST 07:30 / 12:00 / 17:30 / 20:00 / 22:00 の枠ごとに、使っていない名言を1つ選ぶ（偉人4本＋アニメ1本〔20:00〕。存命の人物は除外、英語の本文・出典がデータにあるものだけ、アニメは短い引用だけ）→ `quote_clips.run --langs en` でカード動画を作る → 英語の投稿文（YouTube タイトル90字以内＋#Shorts、説明文にアプリのリンク、TikTok は「link in bio」、BGM のクレジット、ハッシュタグ5個）を作る → `sns-poster enqueue --at <時刻> --options-json` で YouTube・TikTok・Instagram のキューに置く。YouTube・Instagram は Pi の API、TikTok は Mac の Studio 予約が処理する
 - cron（Pi の taku8）: `10 5-21 * * *` に毎時実行。まだ予約していない未来の枠だけを埋めるので、Pi が止まっていても次の回で追いつく。ログは `logs/kotonex-daily.log`
 - 状態: `state/used.json`（使った名言。全部使い切ったら一巡し直す）、`state/schedule-YYYY-MM-DD.json`（枠ごとの名言・ジョブID）

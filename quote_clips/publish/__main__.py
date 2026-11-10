@@ -47,7 +47,7 @@ def publishable(video: Path) -> bool:
     if not meta_path.exists():
         return False
     meta = json.loads(meta_path.read_text(encoding="utf-8"))
-    return meta.get("mode") == "card" or (meta.get("mode") == "clip" and bool(meta.get("license")))
+    return meta.get("mode") in ("card", "scene") or (meta.get("mode") == "clip" and bool(meta.get("license")))
 
 
 def pending_videos(out_dir: Path, lang: str, ledger: Dict, platforms: List[str]) -> List[Path]:

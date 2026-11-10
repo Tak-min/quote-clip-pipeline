@@ -2,7 +2,8 @@
 
 For each of today's JST slots that is still in the future and not yet queued:
   pick an unused quote from the app data (mostly historical figures, one short anime citation),
-  render an ENGLISH card short with quote_clips.run --langs en (card mode only — no third-party footage),
+  render an ENGLISH scene short with quote_clips.run --langs en (headline layout over the speaker's PD
+  portrait + Pexels/Pixabay stock video; never anime/film/TV footage), falling back to the text card,
   build per-platform English captions (app link, BGM credit, 3–5 hashtags) and
   `sns-poster enqueue --at <slot>` it for YouTube / TikTok / Instagram.
 
@@ -90,7 +91,7 @@ def build_posts(meta: Dict, is_anime: bool) -> Dict:
     speaker = meta.get("speaker", "")
     cite = meta.get("cite", "")              # "— Speaker (Work) citation"
     desc = meta.get("description", "")
-    music = next((ln for ln in desc.splitlines() if ln.startswith("Music:")), "")
+    music = "\n".join(ln for ln in desc.splitlines() if ln.startswith(("Music:", "Footage:")))
     tags = [t for t in meta.get("hashtags", []) if t != "#KOTONEX"][:4] + ["#KOTONEX"]
     head = f"\u201c{quote}\u201d\n{cite}"
     tail = "\n".join(x for x in (music, ANIME_NOTE if is_anime else "") if x) + "\n\n" + " ".join(tags)
@@ -111,21 +112,31 @@ def build_posts(meta: Dict, is_anime: bool) -> Dict:
 # ── render + enqueue ─────────────────────────────────────────────────────
 
 
-def render(qid: str, out_dir: Path) -> Path:
-    found = sorted((out_dir / LANG / "cards").glob(f"{qid}_*.mp4"))
+def _render_mode(qid: str, out_dir: Path, mode: str) -> Optional[Path]:
+    folder = out_dir / LANG / ("scenes" if mode == "scene" else "cards")
+    found = sorted(folder.glob(f"{qid}_*.mp4"))
     if not found:
         with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False, encoding="utf-8") as f:
-            f.write(f"mode,quote_id\ncard,{qid}\n")
+            f.write(f"mode,quote_id\n{mode},{qid}\n")
             csv_path = f.name
         try:
             subprocess.run([sys.executable, "-m", "quote_clips.run", "--sources", csv_path, "--langs", LANG,
                             "--out-dir", str(out_dir)], cwd=ROOT, check=True)
         finally:
             os.unlink(csv_path)
-        found = sorted((out_dir / LANG / "cards").glob(f"{qid}_*.mp4"))
-    if not found or not found[0].with_suffix(".json").exists():
-        raise RuntimeError(f"render produced no video for {qid}")
-    return found[0]
+        found = sorted(folder.glob(f"{qid}_*.mp4"))
+    return found[0] if found and found[0].with_suffix(".json").exists() else None
+
+
+def render(qid: str, out_dir: Path) -> Path:
+    """Scene short (headline layout over PD/stock footage); the plain text card if that fails."""
+    modes = ["card"] if os.getenv("KOTONEX_MODE", "scene") == "card" else ["scene", "card"]
+    for mode in modes:
+        video = _render_mode(qid, out_dir, mode)
+        if video:
+            return video
+        logger.warning(f"{qid}: {mode} render produced no video")
+    raise RuntimeError(f"render produced no video for {qid}")
 
 
 def enqueue(video: Path, posts: Dict, at: dt.datetime, meta: Dict) -> str:
