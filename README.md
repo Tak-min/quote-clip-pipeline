@@ -131,7 +131,15 @@ Pi（`taku8@100.102.144.116`、Debian 12 arm64）で **カード動画（英語�
 - 投稿状況: `~/sns-poster/bin/sns-poster status`
 - 2026-11-08 の実績: YouTube と Instagram の最初の2枠は公開済み。Instagram は MP4 の edit list を除き、AAC 48kHz / 128kbps にして再送した。Pi の TikTok API ジョブは保留のまま。現在の自社アカウント専用ツールは TikTok の Direct Post API 審査対象外なので、この用途で `TIKTOK_AUDIT_APPROVED=1` を設定しない。参照: https://developers.tiktok.com/docs/en/content-sharing-guidelines
 
-### KOTONEX の TikTok Studio 自動予約（Mac）
+### TikTok Studio 予約は Pi で実行（2026-11-10〜）
+
+- Pi の cron `*/30` で `tools/tiktok-studio/pi-run.sh` が動く。画面なしの Chromium（プロファイル `~/.config/kotonex-tiktok`、CDP は Pi 内の `127.0.0.1:9222` だけ）を起動し、`KOTONEX_LOCAL=1` で Pi のキュー・動画・`sns-poster` を直接使う。`@reboot` でブラウザを立ち上げる。ログは `logs/tiktok-studio.log`
+- Node.js は `~/.local/node`（v22）。依存は `tools/tiktok-studio` で `npm ci --ignore-scripts`
+- ログインが切れたら: 画面なしの Chromium では QR ログインが通らなかったため、ログイン済みのブラウザから TikTok の Cookie を書き出して `pi-import-cookies.js` で読み込む（読み込み後に一時ファイルを消す）。`pi-login.js`（QR）は予備
+- Mac の LaunchAgent `com.kotonex.tiktok-studio` は停止・無効化済み（`launchctl enable` で戻せる）
+- 予約済みかどうかは投稿文の1行目で判定する（一覧に日付が出なくなり、日付で判定すると毎回再予約していた: 2026-11-10 に同じ動画が4本予約された）
+
+### （旧）KOTONEX の TikTok Studio 自動予約（Mac）
 
 `tools/tiktok-studio/schedule.js` が Pi の当日キューから未来の枠だけを取得し、ログイン済み Brave の TikTok Studio に動画・説明文・予約時刻・「あなたのブランド」表示を入力する。TikTok のコンテンツチェック完了を待ち、予約一覧に掲載された URL を `state/tiktok_studio_scheduled.json` に記録する。再実行時は記録と Studio 一覧を照合して重複を避ける。
 
